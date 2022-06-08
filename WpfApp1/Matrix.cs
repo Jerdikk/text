@@ -14,18 +14,32 @@ namespace WpfApp1
         public int Rows { get { return rows; } }
         public int Cols { get { return cols; } }
 
+        public Matrix(int rows)
+        {
+            if (rows <= 0)
+            {
+                this.rows = 0;
+                this.cols = 0;
+                this.elements = null;
+                return;
+            }
+            this.rows = rows;
+            this.cols = rows;
+            this.elements = new double[rows, rows];
+        }
+
         public Matrix(int rows, int cols)
         {
             if (rows <= 0 || cols <= 0)
             {
-                rows = 0;
-                cols = 0;
-                elements = null;
+                this.rows = 0;
+                this.cols = 0;
+                this.elements = null;
                 return;
             }
             this.rows = rows;
             this.cols = cols;
-            elements = new double[rows, cols];
+            this.elements = new double[rows, cols];
         }
         public bool MakeIdentity()
         {
