@@ -5,6 +5,9 @@
         public int numInput;
         public int numHidden;
         public int numOutput;
+
+        public double learningRate;
+
         public Matrix weightsInput2Hidden;
         public Matrix weightsHidden2Output;
 
@@ -13,7 +16,12 @@
             this.numInput = numInput;
             this.numHidden = numHidden;
             this.numOutput = numOutput;
+            weightsInput2Hidden = new Matrix(numInput,numHidden);
+            weightsHidden2Output = new Matrix(numHidden,numOutput);
         }
+
+
+
     }
 
 }
