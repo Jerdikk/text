@@ -165,6 +165,28 @@ namespace WpfApp1
 
             return res;
         }
+
+        public Matrix T()
+        {
+            Matrix res = new Matrix(cols, rows);
+
+            for (int i = 0; i < rows; i++)
+                for (int j = 0; j < cols; j++)
+                    res.elements[j, i] = this.elements[i, j];
+            return res;
+        }
+
+        public Matrix Sigmoid()
+        {
+            Matrix res = new Matrix(rows, cols);
+
+            for (int i = 0; i < rows; i++)
+                for (int j = 0; j < cols; j++)
+                    res.elements[j, i] = 1 / (1 + Math.Exp((-1) * this.elements[i, j]));
+            return res;
+
+        }
+
     }
 
 }

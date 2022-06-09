@@ -980,7 +980,12 @@ namespace WpfApp1
 
         private void testNet_Click(object sender, RoutedEventArgs e)
         {
-            NeuralNet n = new NeuralNet(784, 200, 10);
+            NeuralNet n = new NeuralNet(2, 2, 2);
+            Matrix inn = new Matrix(1, 2);
+            inn.elements[0, 0] = 5;
+            inn.elements[0, 1] = 7;
+            n.CalcNet(inn);
+
             int t = 1;
         }
     }
