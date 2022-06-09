@@ -26,5 +26,8 @@
             <Button x:Name="loadDictXML" Content="Load dict from XML" Margin="15,0,0,0" MinWidth="80" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="loadDictXML_Click" />
             
         </DockPanel>
+        <DockPanel Grid.Column="1" Grid.Row="0">
+            <Button x:Name="testNet" VerticalAlignment="Bottom" HorizontalAlignment="Left" Content="Test NET" Click="testNet_Click"/>
+        </DockPanel>
     </Grid>
 </Window>

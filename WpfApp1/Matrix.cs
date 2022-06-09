@@ -8,7 +8,7 @@ namespace WpfApp1
 {
     public class Matrix
     {
-        private double[,] elements;
+        public double[,] elements;
         private int rows;
         private int cols;
         public int Rows { get { return rows; } }

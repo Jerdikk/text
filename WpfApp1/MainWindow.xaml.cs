@@ -962,7 +962,7 @@ namespace WpfApp1
             }
         }
 
-        private void dd()
+        private void loadUserDict()
         {
             BinaryFormatter binFormat = new BinaryFormatter();
 
@@ -975,7 +975,13 @@ namespace WpfApp1
 
         private void loadDictXML_Click(object sender, RoutedEventArgs e)
         {
-            dd();
+            loadUserDict();
+        }
+
+        private void testNet_Click(object sender, RoutedEventArgs e)
+        {
+            NeuralNet n = new NeuralNet(784, 200, 10);
+            int t = 1;
         }
     }
 }
