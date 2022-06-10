@@ -980,10 +980,32 @@ namespace WpfApp1
 
         private void testNet_Click(object sender, RoutedEventArgs e)
         {
-            NeuralNet n = new NeuralNet(2, 2, 2);
-            Matrix inn = new Matrix(1, 2);
-            inn.elements[0, 0] = 5;
-            inn.elements[0, 1] = 7;
+            NeuralNet n = new NeuralNet(3, 3, 3);
+            Matrix inn = new Matrix(1, 3);
+            inn.elements[0, 0] = 0.9;
+            inn.elements[0, 1] = 0.1;
+            inn.elements[0, 2] = 0.8;
+            n.weightsInput2Hidden.elements[0, 0] = 0.9;
+            n.weightsInput2Hidden.elements[0, 1] = 0.3;
+            n.weightsInput2Hidden.elements[0, 2] = 0.4;
+            n.weightsInput2Hidden.elements[1, 0] = 0.2;
+            n.weightsInput2Hidden.elements[1, 1] = 0.8;
+            n.weightsInput2Hidden.elements[1, 2] = 0.2;
+            n.weightsInput2Hidden.elements[2, 0] = 0.1;
+            n.weightsInput2Hidden.elements[2, 1] = 0.5;
+            n.weightsInput2Hidden.elements[2, 2] = 0.6;
+
+            n.weightsHidden2Output.elements[0, 0] = 0.3;
+            n.weightsHidden2Output.elements[0, 1] = 0.7;
+            n.weightsHidden2Output.elements[0, 2] = 0.5;
+            n.weightsHidden2Output.elements[1, 0] = 0.6;
+            n.weightsHidden2Output.elements[1, 1] = 0.5;
+            n.weightsHidden2Output.elements[1, 2] = 0.2;
+            n.weightsHidden2Output.elements[2, 0] = 0.8;
+            n.weightsHidden2Output.elements[2, 1] = 0.1;
+            n.weightsHidden2Output.elements[2, 2] = 0.9;
+
+
             n.CalcNet(inn);
 
             int t = 1;
