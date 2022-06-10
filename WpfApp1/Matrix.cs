@@ -91,7 +91,7 @@ namespace WpfApp1
         {
             if (a == null)
                 return null;
-            Matrix res = new Matrix(a.Rows, a.Cols);
+            Matrix res = new Matrix(a.Rows, b.Cols);
             for (int i = 0; i < a.Rows; i++)
                 for (int j = 0; j < b.Cols; j++)
                     for (int k = 0; k < b.Rows; k++)
@@ -182,7 +182,7 @@ namespace WpfApp1
 
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
-                    res.elements[j, i] = 1 / (1 + Math.Exp((-1) * this.elements[i, j]));
+                    res.elements[i, j] = 1 / (1 + Math.Exp((-1) * this.elements[i, j]));
             return res;
 
         }
