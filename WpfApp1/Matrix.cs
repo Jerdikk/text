@@ -75,6 +75,22 @@ namespace WpfApp1
             return res;
         }
 
+        public static Matrix operator -(double c, Matrix a)
+        {
+            if (a == null)
+                return null;
+            Matrix res = new Matrix(a.Rows, a.Cols);
+            for (int i = 0; i < a.Rows; i++)
+                for (int j = 0; j < a.Cols; j++)
+                    res.elements[i, j] = c - a.elements[i, j];
+
+            return res;
+        }
+
+        public static Matrix operator *(double c, Matrix a)
+        {
+            return a * c;
+        }
         public static Matrix operator *(Matrix a, double c)
         {
             if (a == null)
