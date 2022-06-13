@@ -968,7 +968,7 @@ namespace WpfApp1
 
             using (Stream fStream = File.OpenRead("user.dat"))
             {
-                loadedMyDict = (MyDict)binFormat.Deserialize(fStream);                
+                loadedMyDict = (MyDict)binFormat.Deserialize(fStream);
             }
             MessageBox.Show("ВСЕ!");
         }
@@ -980,7 +980,29 @@ namespace WpfApp1
 
         private void testNet_Click(object sender, RoutedEventArgs e)
         {
-            NeuralNet n = new NeuralNet(3, 3, 3);
+
+            string[] allText = File.ReadAllLines("mnist_train_100.csv", Encoding.GetEncoding(1251));
+            string[] tokens;
+
+            NeuralNet n = new NeuralNet(784, 200, 10);
+
+            foreach (string line in allText)
+            {                
+                tokens = line.Split(',');
+                int lenSents = tokens.Length;
+                int control_digit;
+                bool res = Int32.TryParse(tokens[0],out control_digit);
+                Matrix input = new Matrix(1, lenSents - 1);
+                for(int i=1;i<lenSents;i++)
+                {
+                    input.elements[0,i-1] = Convert.ToInt32(tokens[i]);
+                }
+                n.CalcNet(input);
+                int yy = 1;
+            }
+
+            /*
+                NeuralNet n = new NeuralNet(3, 3, 3);
             Matrix inn = new Matrix(1, 3);
             inn.elements[0, 0] = 0.9;
             inn.elements[0, 1] = 0.1;
@@ -1006,7 +1028,7 @@ namespace WpfApp1
             n.weightsHidden2Output.elements[2, 2] = 0.9;
 
 
-            n.CalcNet(inn);
+            n.CalcNet(inn);*/
 
             int t = 1;
         }
