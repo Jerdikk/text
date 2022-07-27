@@ -984,35 +984,76 @@ namespace WpfApp1
             string[] allText = File.ReadAllLines("mnist_train_100.csv", Encoding.GetEncoding(1251));
             string[] tokens;
 
-            NeuralNet n = new NeuralNet(784, 200, 10);
+            NeuralNet n = new NeuralNet(784, 200, 10,7);
 
-            foreach (string line in allText)
-            {                
-                tokens = line.Split(',');
-                int lenSents = tokens.Length;
+            for (int epo = 0; epo < n.numEpoch; epo++)
+            {
+
+                foreach (string line in allText)
+                {
+                    tokens = line.Split(',');
+                    int lenSents = tokens.Length;
+                    int control_digit;
+                    bool res = Int32.TryParse(tokens[0], out control_digit);
+
+                    Matrix train_set = new Matrix(10, 1);
+                    for (int i = 0; i < 10; i++)
+                    {
+                        if (i == control_digit)
+                            train_set.elements[i, 0] = 0.999;
+                        else
+                            train_set.elements[i, 0] = 0.001;
+                    }
+
+                    Matrix input = new Matrix( lenSents - 1,1);
+                    for (int i = 1; i < lenSents; i++)
+                    {
+                        input.elements[i - 1,0] = (Convert.ToInt32(tokens[i]) / 255.0 * 0.99) +0.01;
+                    }
+
+                    
+                    n.TrainNet(input, train_set);
+
+                    //Matrix testt = n.CalcNet(input);
+
+                    int yy = 1;
+                }
+            }
+
+
+            string[] allText1 = File.ReadAllLines("mnist_test_10.csv", Encoding.GetEncoding(1251));
+            string[] tokens1;
+
+            foreach (string line in allText1)
+            {
+                tokens1 = line.Split(',');
+                int lenSents = tokens1.Length;
                 int control_digit;
-                bool res = Int32.TryParse(tokens[0],out control_digit);
+                bool res = Int32.TryParse(tokens1[0], out control_digit);
 
-                Matrix train_set = new Matrix(10, 1);
+                /*Matrix train_set = new Matrix(10, 1);
                 for (int i = 0; i < 10; i++)
                 {
                     if (i == control_digit)
                         train_set.elements[i, 0] = 0.999;
                     else
                         train_set.elements[i, 0] = 0.001;
-                }
+                }*/
 
-                Matrix input = new Matrix(1, lenSents - 1);
-                for(int i=1;i<lenSents;i++)
+                Matrix input = new Matrix(lenSents - 1,1);
+                for (int i = 1; i < lenSents; i++)
                 {
-                    input.elements[0,i-1] = Convert.ToInt32(tokens[i]);
+                    input.elements[i - 1, 0] = (Convert.ToInt32(tokens1[i]) / 255.0 * 0.99) + 0.01;
                 }
-                //Matrix testt = n.CalcNet(input);
 
-                n.TrainNet(input, train_set);   
+
+                //n.TrainNet(input, train_set);
+
+                Matrix testt = n.CalcNet(input);
 
                 int yy = 1;
             }
+
 
             /*
                 NeuralNet n = new NeuralNet(3, 3, 3);
