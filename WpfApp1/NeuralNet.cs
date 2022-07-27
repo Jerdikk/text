@@ -82,7 +82,11 @@ namespace WpfApp1
 
         public void TrainNet(Matrix inputs, Matrix targets)
         {
-            final_outputs = CalcNet(inputs);
+            hidden_outputs = inputs * this.weightsInput2Hidden;
+            hidden_outputs.Sigmoid();
+            final_outputs = hidden_outputs * this.weightsHidden2Output;
+            final_outputs.Sigmoid();
+
             output_errors = targets - final_outputs;
 
             hidden_errors = this.weightsHidden2Output * output_errors.Transpose();
