@@ -992,12 +992,25 @@ namespace WpfApp1
                 int lenSents = tokens.Length;
                 int control_digit;
                 bool res = Int32.TryParse(tokens[0],out control_digit);
+
+                Matrix train_set = new Matrix(10, 1);
+                for (int i = 0; i < 10; i++)
+                {
+                    if (i == control_digit)
+                        train_set.elements[i, 0] = 0.999;
+                    else
+                        train_set.elements[i, 0] = 0.001;
+                }
+
                 Matrix input = new Matrix(1, lenSents - 1);
                 for(int i=1;i<lenSents;i++)
                 {
                     input.elements[0,i-1] = Convert.ToInt32(tokens[i]);
                 }
-                n.CalcNet(input);
+                //Matrix testt = n.CalcNet(input);
+
+                n.TrainNet(input, train_set);   
+
                 int yy = 1;
             }
 

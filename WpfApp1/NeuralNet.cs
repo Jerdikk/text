@@ -44,11 +44,11 @@ namespace WpfApp1
         }
 
         public Matrix CalcNet(Matrix input)
-        {            
-            Matrix inputs = input.T();
-            Matrix hidden_inputs = this.weightsInput2Hidden * inputs;
+        {
+            Matrix inputs = input;//.T();
+            Matrix hidden_inputs = inputs * this.weightsInput2Hidden;
             Matrix hidden_outputs = hidden_inputs.Sigmoid();
-            Matrix output_input = this.weightsHidden2Output * hidden_outputs;
+            Matrix output_input = hidden_outputs*this.weightsHidden2Output ;
             Matrix output = output_input.Sigmoid();
 
             return output;
@@ -56,21 +56,24 @@ namespace WpfApp1
 
         public void TrainNet(Matrix input, Matrix target)
         {
-            Matrix inputs = input.T();
+            Matrix inputs = input;//.T();
             Matrix targets = target.T();
 
-            Matrix hidden_inputs = this.weightsInput2Hidden * inputs;
+            Matrix hidden_inputs = inputs * this.weightsInput2Hidden;
             Matrix hidden_outputs = hidden_inputs.Sigmoid();
-            Matrix output_input = this.weightsHidden2Output * hidden_outputs;
+            Matrix output_input = hidden_outputs * this.weightsHidden2Output;
             Matrix final_outputs = output_input.Sigmoid();
             Matrix output_errors = targets - final_outputs;
-            Matrix hidden_errors = this.weightsHidden2Output.T() * output_errors;
+
+            Matrix hidden_errors = output_errors*this.weightsHidden2Output.T() ;
+
             Matrix temp = 1.0 - final_outputs;
             temp = Matrix.mulAdamar(final_outputs, temp);
             temp= Matrix.mulAdamar(output_errors , temp);
             temp = temp * hidden_outputs.T();
             temp = this.learningRate * temp;
             this.weightsHidden2Output = this.weightsHidden2Output + temp;
+
             temp = 1.0 - hidden_outputs;
             temp = Matrix.mulAdamar(hidden_outputs, temp);
             temp = Matrix.mulAdamar(hidden_errors, temp);
