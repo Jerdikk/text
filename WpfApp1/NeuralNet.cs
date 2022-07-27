@@ -18,12 +18,21 @@ namespace WpfApp1
         public Matrix weightsInput2Hidden;
         public Matrix weightsHidden2Output;
 
-        public NeuralNet(int numInput, int numHidden, int numOutput, int numEpoch)
+
+        Matrix hidden_outputs;
+        Matrix output;
+        Matrix final_outputs;
+        Matrix output_errors;
+
+        Matrix hidden_errors;
+
+
+        public NeuralNet(int numInput, int numHidden, int numOutput, int numEpoch, double learningRate)
         {
             this.numInput = numInput;
             this.numHidden = numHidden;
             this.numOutput = numOutput;
-            this.learningRate = 0.1;
+            this.learningRate = learningRate;
             weightsInput2Hidden = new Matrix(numInput, numHidden);
             var rand = new Random();
             double drRnd;
@@ -46,43 +55,40 @@ namespace WpfApp1
             this.numEpoch = numEpoch;
         }
 
-        public Matrix CalcNet(Matrix input)
+        public Matrix CalcNet(Matrix inputs)
         {
-            Matrix inputs = input.T();
-            Matrix hidden_inputs = inputs * this.weightsInput2Hidden;
-            Matrix hidden_outputs = hidden_inputs.Sigmoid();
-            Matrix output_input = hidden_outputs*this.weightsHidden2Output ;
-            Matrix output = output_input.Sigmoid();
+            hidden_outputs = inputs * this.weightsInput2Hidden;
+            hidden_outputs.Sigmoid();
+            output = hidden_outputs * this.weightsHidden2Output;
+            output.Sigmoid();
 
             return output;
         }
 
-        public void TrainNet(Matrix input, Matrix target)
+        Matrix OptimizeErrorFunc(Matrix a, Matrix b)
         {
-            Matrix inputs = input.T();
-            Matrix targets = target.T();
+            double temp;
+            if ((a.Rows != b.Rows) || (a.Cols != b.Cols))
+                return null;
+            Matrix res = new Matrix(a.Rows, a.Cols);
+            for (int i = 0; i < a.Rows; i++)
+                for (int j = 0; j < a.Cols; j++)
+                {
+                    temp = a.elements[i, j];
+                    res.elements[i, j] = b.elements[i, j] * temp * (1.0 - temp);
+                }
+            return res;
+        }
 
-            Matrix hidden_inputs = inputs * this.weightsInput2Hidden;
-            Matrix hidden_outputs = hidden_inputs.Sigmoid();
-            Matrix output_input = hidden_outputs * this.weightsHidden2Output;
-            Matrix final_outputs = output_input.Sigmoid();
-            Matrix output_errors = targets - final_outputs;
+        public void TrainNet(Matrix inputs, Matrix targets)
+        {
+            final_outputs = CalcNet(inputs);
+            output_errors = targets - final_outputs;
 
-            Matrix hidden_errors = output_errors*this.weightsHidden2Output.T() ;
+            hidden_errors = this.weightsHidden2Output * output_errors.Transpose();
 
-            Matrix temp = 1.0 - final_outputs;
-            temp = Matrix.mulAdamar(final_outputs, temp);
-            temp= Matrix.mulAdamar(output_errors , temp);
-            temp = temp.T() * hidden_outputs;
-            temp = this.learningRate * temp;
-            this.weightsHidden2Output = this.weightsHidden2Output + temp.T();
-
-            temp = 1.0 - hidden_outputs;
-            temp = Matrix.mulAdamar(hidden_outputs, temp);
-            temp = Matrix.mulAdamar(hidden_errors, temp);
-            temp = temp.T()*inputs;
-            temp = this.learningRate * temp;
-            this.weightsInput2Hidden = this.weightsInput2Hidden + temp.T();
+            this.weightsHidden2Output.AddWithMulLR(hidden_outputs.Transpose() * OptimizeErrorFunc(final_outputs, output_errors), this.learningRate);
+            this.weightsInput2Hidden.AddWithMulLR(inputs.Transpose() * OptimizeErrorFunc(hidden_outputs, hidden_errors.Transpose()), this.learningRate);
 
         }
 

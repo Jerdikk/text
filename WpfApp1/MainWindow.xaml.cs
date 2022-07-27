@@ -2,10 +2,12 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,6 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace WpfApp1
 {
@@ -51,6 +54,18 @@ namespace WpfApp1
         }
     }
 
+    public class MyDataContext
+    {
+
+        public ObservableCollection<string> strings { get; set; }
+
+        public MyDataContext()
+        {
+            strings = new ObservableCollection<string>();
+
+        }
+    }
+
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
@@ -59,10 +74,20 @@ namespace WpfApp1
 
         public MyDict myDict;
         public MyDict loadedMyDict;
+        public MyDataContext myDataContext = new MyDataContext();
 
         public MainWindow()
         {
+
             InitializeComponent();
+
+            Binding binding = new Binding();
+            binding.Source = myDataContext;
+            binding.Path = new PropertyPath("strings");
+            binding.Mode = BindingMode.TwoWay;
+
+            lbTest.SetBinding(ListBox.ItemsSourceProperty, binding);
+
             myDict = new MyDict();
         }
 
@@ -980,38 +1005,80 @@ namespace WpfApp1
 
         private void testNet_Click(object sender, RoutedEventArgs e)
         {
+            Thread t = new Thread(new ThreadStart(TestForMNIST));
+
+            t.Start();
+        }
+
+
+        public void TestForMNIST()
+        {
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("Start!");
+                }
+                );
+
 
             string[] allText = File.ReadAllLines("mnist_train_100.csv", Encoding.GetEncoding(1251));
+            //string[] allText = File.ReadAllLines("mnist_train.csv", Encoding.GetEncoding(1251));
             string[] tokens;
 
-            NeuralNet n = new NeuralNet(784, 200, 10,7);
+            NeuralNet n = new NeuralNet(784, 200, 10, 7, 0.05);
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("Start to train dataset!");
+                }
+                );
+
+            Matrix train_set = new Matrix(1, 10);
+            Matrix input = new Matrix(1, 784);
 
             for (int epo = 0; epo < n.numEpoch; epo++)
             {
-
+                this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                    (ThreadStart)delegate ()
+                    {
+                        myDataContext.strings.Add(" Start epoch: " + epo.ToString() + " Time: " + DateTime.Now.ToString("mm:ss:ffff"));
+                    }
+                    );
+                int tempNumStr = 0;
                 foreach (string line in allText)
                 {
+                    /*this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                        (ThreadStart)delegate ()
+                        {
+                            myDataContext.strings.Add(" Start line: " + tempNumStr.ToString() + " time: " + DateTime.Now.ToString("mm:ss:ffff"));
+                        }
+                        );*/
+                    tempNumStr++;
                     tokens = line.Split(',');
                     int lenSents = tokens.Length;
                     int control_digit;
                     bool res = Int32.TryParse(tokens[0], out control_digit);
 
-                    Matrix train_set = new Matrix(10, 1);
+
                     for (int i = 0; i < 10; i++)
                     {
                         if (i == control_digit)
-                            train_set.elements[i, 0] = 0.999;
+                            train_set.elements[0, i] = 0.999;
                         else
-                            train_set.elements[i, 0] = 0.001;
+                            train_set.elements[0, i] = 0.001;
                     }
 
-                    Matrix input = new Matrix( lenSents - 1,1);
+
                     for (int i = 1; i < lenSents; i++)
                     {
-                        input.elements[i - 1,0] = (Convert.ToInt32(tokens[i]) / 255.0 * 0.99) +0.01;
+                        int t = Convert.ToInt32(tokens[i]);
+                        if (t == 0)
+                            input.elements[0, i - 1] = 0.01;
+                        else
+                            input.elements[0, i - 1] = (Convert.ToInt32(tokens[i]) / 255.0 * 0.99) + 0.01;
                     }
 
-                    
+
                     n.TrainNet(input, train_set);
 
                     //Matrix testt = n.CalcNet(input);
@@ -1020,8 +1087,17 @@ namespace WpfApp1
                 }
             }
 
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("Finish train dataset! Time: " + DateTime.Now.ToString("mm:ss:ffff"));
+                    myDataContext.strings.Add("Start to test dataset!");
+                }
+                );
+
 
             string[] allText1 = File.ReadAllLines("mnist_test_10.csv", Encoding.GetEncoding(1251));
+            //string[] allText1 = File.ReadAllLines("mnist_test.csv", Encoding.GetEncoding(1251));
             string[] tokens1;
 
             foreach (string line in allText1)
@@ -1031,60 +1107,43 @@ namespace WpfApp1
                 int control_digit;
                 bool res = Int32.TryParse(tokens1[0], out control_digit);
 
-                /*Matrix train_set = new Matrix(10, 1);
-                for (int i = 0; i < 10; i++)
-                {
-                    if (i == control_digit)
-                        train_set.elements[i, 0] = 0.999;
-                    else
-                        train_set.elements[i, 0] = 0.001;
-                }*/
 
-                Matrix input = new Matrix(lenSents - 1,1);
+                // Matrix input = new Matrix(1,lenSents - 1);
                 for (int i = 1; i < lenSents; i++)
                 {
-                    input.elements[i - 1, 0] = (Convert.ToInt32(tokens1[i]) / 255.0 * 0.99) + 0.01;
+                    input.elements[0, i - 1] = (Convert.ToInt32(tokens1[i]) / 255.0 * 0.99) + 0.01;
                 }
-
-
-                //n.TrainNet(input, train_set);
 
                 Matrix testt = n.CalcNet(input);
 
+                double value = -1.0;
+                int calcDigit = -1;
+
+                for (int i = 1; i < testt.Cols; i++)
+                {
+                    if (value < testt.elements[0, i])
+                    {
+                        calcDigit = i;
+                        value = testt.elements[0, i];
+                    }
+                }
+
+                this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                    (ThreadStart)delegate ()
+                    {
+                        myDataContext.strings.Add("Control digit: " + control_digit.ToString() + " NN digit: " + calcDigit.ToString());
+                    }
+                    );
+
+
                 int yy = 1;
             }
-
-
-            /*
-                NeuralNet n = new NeuralNet(3, 3, 3);
-            Matrix inn = new Matrix(1, 3);
-            inn.elements[0, 0] = 0.9;
-            inn.elements[0, 1] = 0.1;
-            inn.elements[0, 2] = 0.8;
-            n.weightsInput2Hidden.elements[0, 0] = 0.9;
-            n.weightsInput2Hidden.elements[0, 1] = 0.3;
-            n.weightsInput2Hidden.elements[0, 2] = 0.4;
-            n.weightsInput2Hidden.elements[1, 0] = 0.2;
-            n.weightsInput2Hidden.elements[1, 1] = 0.8;
-            n.weightsInput2Hidden.elements[1, 2] = 0.2;
-            n.weightsInput2Hidden.elements[2, 0] = 0.1;
-            n.weightsInput2Hidden.elements[2, 1] = 0.5;
-            n.weightsInput2Hidden.elements[2, 2] = 0.6;
-
-            n.weightsHidden2Output.elements[0, 0] = 0.3;
-            n.weightsHidden2Output.elements[0, 1] = 0.7;
-            n.weightsHidden2Output.elements[0, 2] = 0.5;
-            n.weightsHidden2Output.elements[1, 0] = 0.6;
-            n.weightsHidden2Output.elements[1, 1] = 0.5;
-            n.weightsHidden2Output.elements[1, 2] = 0.2;
-            n.weightsHidden2Output.elements[2, 0] = 0.8;
-            n.weightsHidden2Output.elements[2, 1] = 0.1;
-            n.weightsHidden2Output.elements[2, 2] = 0.9;
-
-
-            n.CalcNet(inn);*/
-
-            int t = 1;
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("That's all!");
+                }
+                );
         }
     }
 }

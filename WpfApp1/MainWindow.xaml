@@ -6,6 +6,9 @@
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
@@ -27,7 +30,8 @@
             
         </DockPanel>
         <DockPanel Grid.Column="1" Grid.Row="0">
-            <Button x:Name="testNet" VerticalAlignment="Bottom" HorizontalAlignment="Left" Content="Test NET" Click="testNet_Click"/>
+            <Button x:Name="testNet" VerticalAlignment="Bottom" HorizontalAlignment="Left" Content="Test on MNIST dataset" Click="testNet_Click"/>
         </DockPanel>
+        <ListBox x:Name="lbTest" Grid.Column="1" Grid.Row="1" />
     </Grid>
 </Window>

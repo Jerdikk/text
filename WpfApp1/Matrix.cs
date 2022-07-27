@@ -63,6 +63,16 @@ namespace WpfApp1
             return res;
         }
 
+        public void AddWithMulLR( Matrix b, double lrRate)
+        {
+            if ((b == null) || (Rows != b.Rows) || (Cols != b.Cols))
+                return ;            
+            for (int i = 0; i < Rows; i++)
+                for (int j = 0; j < Cols; j++)
+                    elements[i, j] = elements[i, j] + b.elements[i, j]*lrRate;            
+        }
+
+
         public static Matrix operator -(Matrix a, Matrix b)
         {
             if ((a == null) || (b == null) || (a.Rows != b.Rows) || (a.Cols != b.Cols))
@@ -168,21 +178,38 @@ namespace WpfApp1
             }
         }
 
-
-        public static Matrix mulAdamar(Matrix a, Matrix b)
+        public void mulAdamar(Matrix a)
         {
-            Matrix res = null;
+            //Matrix res = null;
+            if ((a == null) || (a.Rows != Rows) || (a.Cols != Cols))
+            {               
+                return;
+            }
+            //res = new Matrix(a.Rows, a.Cols);
+            for (int i = 0; i < Rows; i++)
+                for (int j = 0; j < Cols; j++)
+                    elements[i, j] = a.elements[i, j] * elements[i, j];
+
+            //return res;
+        }
+
+        public static void mulAdamar(Matrix a, Matrix b, ref Matrix res)
+        {
+            //Matrix res = null;
             if ((a == null) || (b == null) || (a.Rows != b.Rows) || (a.Cols != b.Cols))
-                return res;
-            res = new Matrix(a.Rows, a.Cols);
+            {
+                res = null;
+                return;
+            }
+            //res = new Matrix(a.Rows, a.Cols);
             for (int i = 0; i < a.Rows; i++)
                 for (int j = 0; j < a.Cols; j++)
                     res.elements[i, j] = a.elements[i, j] * b.elements[i, j];
 
-            return res;
+            //return res;
         }
 
-        public Matrix T()
+        public Matrix Transpose()
         {
             Matrix res = new Matrix(cols, rows);
 
@@ -192,17 +219,31 @@ namespace WpfApp1
             return res;
         }
 
-        public Matrix Sigmoid()
+        public void Sigmoid()
         {
-            Matrix res = new Matrix(rows, cols);
+            //Matrix res = new Matrix(rows, cols);
 
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
-                    res.elements[i, j] = 1 / (1 + Math.Exp((-1) * this.elements[i, j]));
-            return res;
+                    this.elements[i, j] = 1 / (1 + Math.Exp((-1) * this.elements[i, j]));
+            //return res;
 
         }
 
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 
 }
