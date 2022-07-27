@@ -39,16 +39,16 @@ namespace WpfApp1
             for (int i = 0; i < numInput; i++)
                 for (int j = 0; j < numHidden; j++)
                 {
-                    drRnd = (double)rand.Next(-100, 100) / 100.0;
-                    if (drRnd == 0.0) drRnd = 0.01;
+                    drRnd = (double)rand.Next(-99, 99) / 100.0;
+                    if (Math.Abs( drRnd) < 0.001) drRnd = 0.01;
                     weightsInput2Hidden.elements[i, j] = drRnd;
                 }
             weightsHidden2Output = new Matrix(numHidden, numOutput);
             for (int i = 0; i < numHidden; i++)
                 for (int j = 0; j < numOutput; j++)
                 {
-                    drRnd = (double)rand.Next(-100, 100) / 100.0;
-                    if (drRnd == 0.0) drRnd = 0.01;
+                    drRnd = (double)rand.Next(-99, 99) / 100.0;
+                    if (Math.Abs(drRnd) < 0.001) drRnd = 0.01;
                     weightsHidden2Output.elements[i, j] = drRnd;
                 }
 
