@@ -65,12 +65,11 @@ namespace WpfApp1
             return output;
         }
 
-        Matrix OptimizeErrorFunc(Matrix a, Matrix b)
+        Matrix OptimizeErrorFunc1(Matrix a, Matrix b)
         {
             double temp;
-            if ((a.Rows != b.Rows) || (a.Cols != b.Cols))
-                return null;
             Matrix res = new Matrix(a.Rows, a.Cols);
+
             for (int i = 0; i < a.Rows; i++)
                 for (int j = 0; j < a.Cols; j++)
                 {
@@ -79,6 +78,21 @@ namespace WpfApp1
                 }
             return res;
         }
+
+        Matrix OptimizeErrorFunc2(Matrix a, Matrix b)
+        {
+            double temp;
+            Matrix res = new Matrix(a.Rows, a.Cols);
+
+            for (int i = 0; i < a.Rows; i++)
+                for (int j = 0; j < a.Cols; j++)
+                {
+                    temp = a.elements[i, j];
+                    res.elements[i, j] = b.elements[j, i] * temp * (1.0 - temp);
+                }
+            return res;
+        }
+
 
         public void TrainNet(Matrix inputs, Matrix targets)
         {
@@ -91,8 +105,8 @@ namespace WpfApp1
 
             hidden_errors = this.weightsHidden2Output * output_errors.Transpose();
 
-            this.weightsHidden2Output.AddWithMulLR(hidden_outputs.Transpose() * OptimizeErrorFunc(final_outputs, output_errors), this.learningRate);
-            this.weightsInput2Hidden.AddWithMulLR(inputs.Transpose() * OptimizeErrorFunc(hidden_outputs, hidden_errors.Transpose()), this.learningRate);
+            this.weightsHidden2Output.AddWithMulLR(hidden_outputs.Transpose() * OptimizeErrorFunc1(final_outputs, output_errors), this.learningRate);
+            this.weightsInput2Hidden.AddWithMulLR(inputs.Transpose() * OptimizeErrorFunc2(hidden_outputs, hidden_errors/*.Transpose()*/), this.learningRate);
 
         }
 

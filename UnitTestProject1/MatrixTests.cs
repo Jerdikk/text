@@ -39,9 +39,9 @@ namespace WpfApp1.Tests
 
                 ident =  testA.MakeIdentity();
                 ident = testB.MakeIdentity();
-                Matrix testC = Matrix.mulAdamar(testA, testB);
-                testC = testA + testB;
-                testC = testC - testA;
+               // Matrix testC = Matrix.mulAdamar(testA, testB);
+               // testC = testA + testB;
+               // testC = testC - testA;
 
             }
             catch

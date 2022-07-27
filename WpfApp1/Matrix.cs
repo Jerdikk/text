@@ -53,7 +53,7 @@ namespace WpfApp1
         public static Matrix operator +(Matrix a, Matrix b)
         {
 
-            if ((a == null) || (b == null) || (a.Rows != b.Rows) || (a.Cols != b.Cols))
+            if ((a.Rows != b.Rows) || (a.Cols != b.Cols))
                 return null;
             Matrix res = new Matrix(a.Rows, a.Cols);
             for (int i = 0; i < a.Rows; i++)
@@ -63,20 +63,16 @@ namespace WpfApp1
             return res;
         }
 
-        public void AddWithMulLR( Matrix b, double lrRate)
+        public void AddWithMulLR(Matrix b, double lrRate)
         {
-            if ((b == null) || (Rows != b.Rows) || (Cols != b.Cols))
-                return ;            
             for (int i = 0; i < Rows; i++)
                 for (int j = 0; j < Cols; j++)
-                    elements[i, j] = elements[i, j] + b.elements[i, j]*lrRate;            
+                    elements[i, j] = elements[i, j] + b.elements[i, j] * lrRate;
         }
 
 
         public static Matrix operator -(Matrix a, Matrix b)
         {
-            if ((a == null) || (b == null) || (a.Rows != b.Rows) || (a.Cols != b.Cols))
-                return null;
             Matrix res = new Matrix(a.Rows, a.Cols);
             for (int i = 0; i < a.Rows; i++)
                 for (int j = 0; j < a.Cols; j++)
@@ -103,8 +99,6 @@ namespace WpfApp1
         }
         public static Matrix operator *(Matrix a, double c)
         {
-            if (a == null)
-                return null;
             Matrix res = new Matrix(a.Rows, a.Cols);
             for (int i = 0; i < a.Rows; i++)
                 for (int j = 0; j < a.Cols; j++)
@@ -115,8 +109,6 @@ namespace WpfApp1
 
         public static Matrix operator *(Matrix a, Matrix b)
         {
-            if (a == null)
-                return null;
             Matrix res = new Matrix(a.Rows, b.Cols);
             for (int i = 0; i < a.Rows; i++)
                 for (int j = 0; j < b.Cols; j++)
@@ -178,36 +170,21 @@ namespace WpfApp1
             }
         }
 
-        public void mulAdamar(Matrix a)
+        /*public void mulAdamar(Matrix a)
         {
-            //Matrix res = null;
-            if ((a == null) || (a.Rows != Rows) || (a.Cols != Cols))
-            {               
-                return;
-            }
-            //res = new Matrix(a.Rows, a.Cols);
             for (int i = 0; i < Rows; i++)
                 for (int j = 0; j < Cols; j++)
                     elements[i, j] = a.elements[i, j] * elements[i, j];
 
-            //return res;
         }
 
         public static void mulAdamar(Matrix a, Matrix b, ref Matrix res)
         {
-            //Matrix res = null;
-            if ((a == null) || (b == null) || (a.Rows != b.Rows) || (a.Cols != b.Cols))
-            {
-                res = null;
-                return;
-            }
-            //res = new Matrix(a.Rows, a.Cols);
             for (int i = 0; i < a.Rows; i++)
                 for (int j = 0; j < a.Cols; j++)
                     res.elements[i, j] = a.elements[i, j] * b.elements[i, j];
 
-            //return res;
-        }
+        }*/
 
         public Matrix Transpose()
         {
@@ -221,13 +198,9 @@ namespace WpfApp1
 
         public void Sigmoid()
         {
-            //Matrix res = new Matrix(rows, cols);
-
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
                     this.elements[i, j] = 1 / (1 + Math.Exp((-1) * this.elements[i, j]));
-            //return res;
-
         }
 
         public override string ToString()

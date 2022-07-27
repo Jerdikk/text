@@ -1025,7 +1025,7 @@ namespace WpfApp1
             //string[] allText = File.ReadAllLines("mnist_train.csv", Encoding.GetEncoding(1251));
             string[] tokens;
 
-            NeuralNet n = new NeuralNet(784, 200, 10, 7, 0.05);
+            NeuralNet n = new NeuralNet(784, 200, 10, 7, 0.07);
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
@@ -1063,9 +1063,9 @@ namespace WpfApp1
                     for (int i = 0; i < 10; i++)
                     {
                         if (i == control_digit)
-                            train_set.elements[0, i] = 0.999;
+                            train_set.elements[0, i] = 0.9999;
                         else
-                            train_set.elements[0, i] = 0.001;
+                            train_set.elements[0, i] = 0.000;
                     }
 
 
@@ -1075,7 +1075,12 @@ namespace WpfApp1
                         if (t == 0)
                             input.elements[0, i - 1] = 0.01;
                         else
-                            input.elements[0, i - 1] = (Convert.ToInt32(tokens[i]) / 255.0 * 0.99) + 0.01;
+                        {
+                            if (t == 255)
+                                input.elements[0, i - 1] = 0.9999;
+                            else
+                                input.elements[0, i - 1] = (t / 256.0 * 0.99) + 0.01;
+                        }
                     }
 
 
@@ -1108,10 +1113,18 @@ namespace WpfApp1
                 bool res = Int32.TryParse(tokens1[0], out control_digit);
 
 
-                // Matrix input = new Matrix(1,lenSents - 1);
                 for (int i = 1; i < lenSents; i++)
                 {
-                    input.elements[0, i - 1] = (Convert.ToInt32(tokens1[i]) / 255.0 * 0.99) + 0.01;
+                    int t = Convert.ToInt32(tokens1[i]);
+                    if (t == 0)
+                        input.elements[0, i - 1] = 0.01;
+                    else
+                    {
+                        if (t == 255)
+                            input.elements[0, i - 1] = 0.9999;
+                        else
+                            input.elements[0, i - 1] = (t / 256.0 * 0.99) + 0.01;
+                    }
                 }
 
                 Matrix testt = n.CalcNet(input);
