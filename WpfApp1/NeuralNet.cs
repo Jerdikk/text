@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace WpfApp1
 {
+    [Serializable]
     public class NeuralNet
     {
         public int numInput;
@@ -111,6 +114,31 @@ namespace WpfApp1
             this.weightsHidden2Output.AddWithMulLR(hidden_outputs.Transpose() * OptimizeErrorFunc1(final_outputs, output_errors), this.learningRate);
             this.weightsInput2Hidden.AddWithMulLR(inputs.Transpose() * OptimizeErrorFunc2(hidden_outputs, hidden_errors/*.Transpose()*/), this.learningRate);
 
+        }
+
+        public void Save(string fname)
+        {
+            // BinaryFormatter сохраняет данные в двоичном формате. Чтобы получить доступ к BinaryFormatter, понадобится
+            // импортировать System.Runtime.Serialization.Formatters.Binary
+            BinaryFormatter binFormat = new BinaryFormatter();
+            // Сохранить объект в локальном файле.
+            using (Stream fStream = new FileStream(fname,
+               FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                binFormat.Serialize(fStream, this);
+            }
+        }
+
+        public static NeuralNet Load(string fname)
+        {
+           //NeuralNet neuralNet;
+            BinaryFormatter binFormat = new BinaryFormatter();
+
+            using (Stream fStream = File.OpenRead(fname))
+            {
+                return (NeuralNet)binFormat.Deserialize(fStream);
+            }
+            //return neuralNet;
         }
 
     }
