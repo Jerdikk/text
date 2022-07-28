@@ -1024,11 +1024,13 @@ namespace WpfApp1
             //string[] allText = File.ReadAllLines("mnist_train_100.csv", Encoding.GetEncoding(1251));
             //string[] allText = File.ReadAllLines("mnist_train.csv", Encoding.GetEncoding(1251));
 
-            /*
-            NeuralNet myNNet = new NeuralNet(784, 200, 10, 7, 0.1f);
+            
+            //NeuralNet myNNet = new NeuralNet(784, 200, 10, 7, 0.1f);
+
+            NeuralNet myNNet = NeuralNet.Load("weights");
 
             // trainSet = new TrainSet(10, 784);
-
+            /*
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
@@ -1079,6 +1081,7 @@ namespace WpfApp1
 
 
             /*
+
             trainSet = TrainSet.Load("MNIST");
             for (int epo = 0; epo < myNNet.numEpoch; epo++)
             {
@@ -1100,7 +1103,7 @@ namespace WpfApp1
 
             myNNet.Save("weights");
 
-            
+            */
 
 
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
@@ -1112,8 +1115,8 @@ namespace WpfApp1
                 );
 
             // trainSet.Save("MNIST");
-            trainSet.ClearTrainSet();
-            */
+            //trainSet.ClearTrainSet();
+            
 
 
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
@@ -1123,7 +1126,7 @@ namespace WpfApp1
                 }
                 );
 
-            NeuralNet myNNet = NeuralNet.Load("weights");
+            
 
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
@@ -1132,12 +1135,16 @@ namespace WpfApp1
                 }
                 );
 
-            string[] allText1 = File.ReadAllLines("mnist_test_10.csv", Encoding.GetEncoding(1251));
-            //string[] allText1 = File.ReadAllLines("mnist_test.csv", Encoding.GetEncoding(1251));
+            //string[] allText1 = File.ReadAllLines("mnist_test_10.csv", Encoding.GetEncoding(1251));
+            string[] allText1 = File.ReadAllLines("mnist_test.csv", Encoding.GetEncoding(1251));
             string[] tokens1;
+
+            int countAll = 0;
+            int countRight = 0;
 
             foreach (string line in allText1)
             {
+                countAll++;
                 Matrix input = new Matrix(1, 784);
 
                 tokens1 = line.Split(',');
@@ -1174,6 +1181,9 @@ namespace WpfApp1
                     }
                 }
 
+                if (calcDigit == control_digit)
+                    countRight++;
+
                 this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     (ThreadStart)delegate ()
                     {
@@ -1187,6 +1197,7 @@ namespace WpfApp1
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
+                    myDataContext.strings.Add("All count: " + countAll.ToString() + " right count: " + countRight.ToString());
                     myDataContext.strings.Add("That's all!");
                 }
                 );
