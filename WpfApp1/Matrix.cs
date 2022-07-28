@@ -8,7 +8,7 @@ namespace WpfApp1
 {
     public class Matrix
     {
-        public double[,] elements;
+        public float[,] elements;
         private int rows;
         private int cols;
         public int Rows { get { return rows; } }
@@ -25,7 +25,7 @@ namespace WpfApp1
             }
             this.rows = rows;
             this.cols = rows;
-            this.elements = new double[rows, rows];
+            this.elements = new float[rows, rows];
         }
 
         public Matrix(int rows, int cols)
@@ -39,7 +39,7 @@ namespace WpfApp1
             }
             this.rows = rows;
             this.cols = cols;
-            this.elements = new double[rows, cols];
+            this.elements = new float[rows, cols];
         }
         public bool MakeIdentity()
         {
@@ -47,7 +47,7 @@ namespace WpfApp1
                 return false;
             Matrix res = new Matrix(rows, cols);
             for (int i = 0; i < rows; i++)
-                elements[i, i] = 1.0;
+                elements[i, i] = 1.0f;
             return true;
         }
         public static Matrix operator +(Matrix a, Matrix b)
@@ -63,7 +63,7 @@ namespace WpfApp1
             return res;
         }
 
-        public void AddWithMulLR(Matrix b, double lrRate)
+        public void AddWithMulLR(Matrix b, float lrRate)
         {
             for (int i = 0; i < Rows; i++)
                 for (int j = 0; j < Cols; j++)
@@ -81,7 +81,7 @@ namespace WpfApp1
             return res;
         }
 
-        public static Matrix operator -(double c, Matrix a)
+        public static Matrix operator -(float c, Matrix a)
         {
             if (a == null)
                 return null;
@@ -93,11 +93,11 @@ namespace WpfApp1
             return res;
         }
 
-        public static Matrix operator *(double c, Matrix a)
+        public static Matrix operator *(float c, Matrix a)
         {
             return a * c;
         }
-        public static Matrix operator *(Matrix a, double c)
+        public static Matrix operator *(Matrix a, float c)
         {
             Matrix res = new Matrix(a.Rows, a.Cols);
             for (int i = 0; i < a.Rows; i++)
@@ -200,7 +200,7 @@ namespace WpfApp1
         {
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
-                    this.elements[i, j] = 1 / (1 + Math.Exp((-1) * this.elements[i, j]));
+                    this.elements[i, j] = 1.0f / (1.0f + (float)Math.Exp((-1.0f) * this.elements[i, j]));
         }
 
         public override string ToString()

@@ -12,22 +12,15 @@ namespace WpfApp1
         public int numHidden;
         public int numOutput;
 
-        public double learningRate;
+        public float learningRate;
         public int numEpoch;
 
         public Matrix weightsInput2Hidden;
         public Matrix weightsHidden2Output;
 
 
-        Matrix hidden_outputs;
-        Matrix output;
-        Matrix final_outputs;
-        Matrix output_errors;
 
-        Matrix hidden_errors;
-
-
-        public NeuralNet(int numInput, int numHidden, int numOutput, int numEpoch, double learningRate)
+        public NeuralNet(int numInput, int numHidden, int numOutput, int numEpoch, float learningRate)
         {
             this.numInput = numInput;
             this.numHidden = numHidden;
@@ -35,20 +28,20 @@ namespace WpfApp1
             this.learningRate = learningRate;
             weightsInput2Hidden = new Matrix(numInput, numHidden);
             var rand = new Random();
-            double drRnd;
+            float drRnd;
             for (int i = 0; i < numInput; i++)
                 for (int j = 0; j < numHidden; j++)
                 {
-                    drRnd = (double)rand.Next(-99, 99) / 100.0;
-                    if (Math.Abs( drRnd) < 0.001) drRnd = 0.01;
+                    drRnd = (float)rand.Next(-99, 99) / 100.0f;
+                    if (Math.Abs( drRnd) < 0.001) drRnd = 0.01f;
                     weightsInput2Hidden.elements[i, j] = drRnd;
                 }
             weightsHidden2Output = new Matrix(numHidden, numOutput);
             for (int i = 0; i < numHidden; i++)
                 for (int j = 0; j < numOutput; j++)
                 {
-                    drRnd = (double)rand.Next(-99, 99) / 100.0;
-                    if (Math.Abs(drRnd) < 0.001) drRnd = 0.01;
+                    drRnd = (float)rand.Next(-99, 99) / 100.0f;
+                    if (Math.Abs(drRnd) < 0.001) drRnd = 0.01f;
                     weightsHidden2Output.elements[i, j] = drRnd;
                 }
 
@@ -57,6 +50,9 @@ namespace WpfApp1
 
         public Matrix CalcNet(Matrix inputs)
         {
+            Matrix hidden_outputs;
+            Matrix output;
+
             hidden_outputs = inputs * this.weightsInput2Hidden;
             hidden_outputs.Sigmoid();
             output = hidden_outputs * this.weightsHidden2Output;
@@ -67,28 +63,28 @@ namespace WpfApp1
 
         Matrix OptimizeErrorFunc1(Matrix a, Matrix b)
         {
-            double temp;
+            float temp;
             Matrix res = new Matrix(a.Rows, a.Cols);
 
             for (int i = 0; i < a.Rows; i++)
                 for (int j = 0; j < a.Cols; j++)
                 {
                     temp = a.elements[i, j];
-                    res.elements[i, j] = b.elements[i, j] * temp * (1.0 - temp);
+                    res.elements[i, j] = b.elements[i, j] * temp * (1.0f - temp);
                 }
             return res;
         }
 
         Matrix OptimizeErrorFunc2(Matrix a, Matrix b)
         {
-            double temp;
+            float temp;
             Matrix res = new Matrix(a.Rows, a.Cols);
 
             for (int i = 0; i < a.Rows; i++)
                 for (int j = 0; j < a.Cols; j++)
                 {
                     temp = a.elements[i, j];
-                    res.elements[i, j] = b.elements[j, i] * temp * (1.0 - temp);
+                    res.elements[i, j] = b.elements[j, i] * temp * (1.0f - temp);
                 }
             return res;
         }
@@ -96,6 +92,13 @@ namespace WpfApp1
 
         public void TrainNet(Matrix inputs, Matrix targets)
         {
+            Matrix hidden_outputs;
+            
+            Matrix final_outputs;
+            Matrix output_errors;
+
+            Matrix hidden_errors;
+
             hidden_outputs = inputs * this.weightsInput2Hidden;
             hidden_outputs.Sigmoid();
             final_outputs = hidden_outputs * this.weightsHidden2Output;
