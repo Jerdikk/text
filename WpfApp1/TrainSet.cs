@@ -42,14 +42,19 @@ namespace WpfApp1
 
         public static TrainSet Load(string fname)
         {
-            TrainSet trainSet;
-            BinaryFormatter binFormat = new BinaryFormatter();
-
-            using (Stream fStream = File.OpenRead(fname))
+            if (File.Exists(fname))
             {
-                trainSet = (TrainSet)binFormat.Deserialize(fStream);
+                TrainSet trainSet;
+                BinaryFormatter binFormat = new BinaryFormatter();
+
+                using (Stream fStream = File.OpenRead(fname))
+                {
+                    trainSet = (TrainSet)binFormat.Deserialize(fStream);
+                }
+                return trainSet;
             }
-            return trainSet;
+            else
+                return null;
         }
 
     }

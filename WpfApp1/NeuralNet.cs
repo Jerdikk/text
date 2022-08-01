@@ -131,13 +131,19 @@ namespace WpfApp1
 
         public static NeuralNet Load(string fname)
         {
-           //NeuralNet neuralNet;
-            BinaryFormatter binFormat = new BinaryFormatter();
-
-            using (Stream fStream = File.OpenRead(fname))
+            //NeuralNet neuralNet;
+            if (File.Exists(fname))
             {
-                return (NeuralNet)binFormat.Deserialize(fStream);
+
+                BinaryFormatter binFormat = new BinaryFormatter();
+
+                using (Stream fStream = File.OpenRead(fname))
+                {
+                    return (NeuralNet)binFormat.Deserialize(fStream);
+                }
             }
+            else
+                return null;
             //return neuralNet;
         }
 

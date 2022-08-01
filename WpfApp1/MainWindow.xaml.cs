@@ -1024,10 +1024,101 @@ namespace WpfApp1
             //string[] allText = File.ReadAllLines("mnist_train_100.csv", Encoding.GetEncoding(1251));
             //string[] allText = File.ReadAllLines("mnist_train.csv", Encoding.GetEncoding(1251));
 
-            
+
             //NeuralNet myNNet = new NeuralNet(784, 200, 10, 7, 0.1f);
 
-            NeuralNet myNNet = NeuralNet.Load("weights");
+            NeuralNet myNNet;
+
+            try
+            {
+                myNNet = NeuralNet.Load("weights");
+                if (myNNet == null)
+                {
+                    myNNet = new NeuralNet(784, 200, 10, 7, 0.1f);
+                    trainSet = TrainSet.Load("MNIST");
+                    if (trainSet==null)
+                    {
+                        trainSet = new TrainSet(10, 784);
+                        this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                             (ThreadStart)delegate ()
+                                {
+                                    myDataContext.strings.Add("Start to train dataset!");
+                                }
+                             );
+
+                        foreach (string line in File.ReadLines("mnist_train.csv", Encoding.GetEncoding(1251)))
+                        {
+                            string[] tokens;
+                            Matrix mTrain = new Matrix(1, trainSet.dimTrainSet);
+                            Matrix mInput = new Matrix(1, trainSet.dimInputSet);
+                            tokens = line.Split(',');
+                            int lenSents = tokens.Length;
+                            int control_digit;
+                            bool res = Int32.TryParse(tokens[0], out control_digit);
+
+                            // trainSet.controlDigit.Add(control_digit);
+
+                            for (int i = 0; i < trainSet.dimTrainSet; i++)
+                            {
+                                if (i == control_digit)
+                                    mTrain.elements[0, i] = 0.9999f;
+                                else
+                                    mTrain.elements[0, i] = 0.000f;
+                            }
+
+                            trainSet.mTrainSet.Add(mTrain);
+
+                            for (int i = 1; i < lenSents; i++)
+                            {
+                                int t = Convert.ToInt32(tokens[i]);
+                                if (t == 0)
+                                    mInput.elements[0, i - 1] = 0.01f;
+                                else
+                                {
+                                    if (t == 255)
+                                        mInput.elements[0, i - 1] = 0.9999f;
+                                    else
+                                        mInput.elements[0, i - 1] = (t / 256.0f * 0.99f) + 0.01f;
+                                }
+                            }
+
+                            trainSet.mInputSet.Add(mInput);
+
+                        }
+                        trainSet.Save("MNIST");                    
+                    }
+                    else
+                    {
+
+                    }
+                    for (int epo = 0; epo < myNNet.numEpoch; epo++)
+                    {
+                        this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                            (ThreadStart)delegate ()
+                            {
+                                myDataContext.strings.Add(" Start epoch: " + epo.ToString() + " Time: " + DateTime.Now.ToString("mm:ss:ffff"));
+                            }
+                            );
+                        //int tempNumStr = 0;
+                        for (int index = 0; index < trainSet.mInputSet.Count; index++)
+                        {
+                            //tempNumStr++;
+
+                            myNNet.TrainNet(trainSet.mInputSet[index], trainSet.mTrainSet[index]);
+
+                        }
+                    }
+
+                    myNNet.Save("weights");
+
+                }
+            }
+
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return;
+            }
 
             // trainSet = new TrainSet(10, 784);
             /*
@@ -1119,7 +1210,7 @@ namespace WpfApp1
             
 
 
-            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+            /*this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
                     myDataContext.strings.Add("Start to load weights! Time: " + DateTime.Now.ToString("mm:ss:ffff"));
@@ -1133,7 +1224,7 @@ namespace WpfApp1
                 {
                     myDataContext.strings.Add("End load weights! Time: " + DateTime.Now.ToString("mm:ss:ffff"));
                 }
-                );
+                );*/
 
             //string[] allText1 = File.ReadAllLines("mnist_test_10.csv", Encoding.GetEncoding(1251));
             string[] allText1 = File.ReadAllLines("mnist_test.csv", Encoding.GetEncoding(1251));
