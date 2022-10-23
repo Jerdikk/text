@@ -23,23 +23,35 @@ using System.Windows.Threading;
 namespace WpfApp1
 {
     [Serializable]
+    public class WordRange
+    {
+        public string letter;
+        public int startID;
+        public int endID;
+    }
+
+    [Serializable]
     public class DictWord
     {
-        public string wholeWord;
-        public string type;
         public int id;
-        public List<string> words;
+        public string word;
+        public string type;
+        public bool isMainWord;
     }
     [Serializable]
-    public class DictTree
+    public class Node
     {
-        public int temp1;
+        // public int temp1;
         public string Letter;
+        //  public string wholeWord;
+        // public string type;
+        public int id;
+
         //  public List<string> Variants;
-        public List<DictTree> dictTrees;
+        public List<Node> Nodes;
         public List<DictWord> dictWords;
 
-        public DictTree()
+        public Node()
         {
         }
 
@@ -47,14 +59,27 @@ namespace WpfApp1
     [Serializable]
     public class MyDict
     {
-        public List<DictTree> tree;
+        public int globalID;
+        public List<Node> tree;
 
         public MyDict()
         {
-            tree = new List<DictTree>();
+            globalID = 0;
+            tree = new List<Node>();
         }
     }
 
+    [Serializable]
+    public class MainDict
+    {
+        public List<WordRange> listWordRange;
+        public List<DictWord> dicts;
+        public MainDict()
+        {
+            listWordRange = null;
+            dicts = new List<DictWord>();
+        }
+    }
     public class MyDataContext
     {
 
@@ -77,6 +102,7 @@ namespace WpfApp1
         public MyDict loadedMyDict;
         public MyDataContext myDataContext = new MyDataContext();
         public TrainSet trainSet;
+        public string globalFile;
 
         public MainWindow()
         {
@@ -185,13 +211,18 @@ namespace WpfApp1
             }
         }
 
-        private void loadDict_Click(object sender, RoutedEventArgs e)
+
+        public void GetMainDict()
         {
+
+
+
+
             string[] allText;
             string[] tokens;
 
-            string tempLine = "";
-            string tempStr = "";
+            //string tempLine = "";
+            //string tempStr = "";
 
             char[] chars = new char[3];
             chars[0] = '.';
@@ -203,790 +234,202 @@ namespace WpfApp1
             List<string> tokenList = new List<string>();
             List<int> countToken = new List<int>();
 
-            DictTree dt;
-            DictTree dt2;
-            DictTree dt3;
-            DictTree dt4;
 
 
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
+            //Node dt;
+            //Node dt2;
+            //Node dt3;
+            //Node dt4;
+
+            int localCounter = 0;
+
+            MainDict mainDict = new MainDict();
+
+            ////                             t = myDict.tree.FindIndex(x => x.Letter == line.Substring(0, 1));
+            int cc = 0;
+            int t;
+            int u;
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+              (ThreadStart)delegate ()
+              {
+                  myDataContext.strings.Add("Start!");
+              }
+              );
+
+            allText = File.ReadAllLines(globalFile, Encoding.GetEncoding(1251));
+
+            int sstart = 0;
+            // int sstart = -1, eend = -1;
+
+            foreach (string line1 in allText)
             {
-                int cc = 0;
-                allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding(1251));
-                foreach (string line1 in allText)
+                if (localCounter % 100 == 0)
                 {
-                    tokens = line1.Split(',');
+                    this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                      (ThreadStart)delegate ()
+                      {
+                          myDataContext.strings.Add(localCounter.ToString());
+                      }
+                      );
 
-                    int lenn = tokens[0].Length;
+                }
 
-                    string line = tokens[0].ToLower();
-                    if (lenn > 1)
+                tokens = line1.Split(',');
+
+                int lenn = tokens[0].Length;
+
+                string line = tokens[0].ToLower();
+
+                if (mainDict.listWordRange == null)
+                {
+                    mainDict.listWordRange = new List<WordRange>();
+                    WordRange wordRange = new WordRange();
+                    wordRange.letter = line.Substring(0, 1);
+                    wordRange.startID = mainDict.dicts.Count;
+                    wordRange.endID = mainDict.dicts.Count;
+                    mainDict.listWordRange.Add(wordRange);
+                }
+                else
+                {
+                    if (mainDict.listWordRange[mainDict.listWordRange.Count - 1].letter != line.Substring(0, 1))
                     {
-                        int t = -1;
-                        if (myDict.tree == null)
-                            myDict.tree = new List<DictTree>();
-                        else
-                            t = myDict.tree.FindIndex(x => x.Letter == line.Substring(0, 2));
-                        if (t == -1)
-                        {
-                            if (lenn > 1)
-                            {
-                                dt = new DictTree();
-                                dt.Letter = line.Substring(0, 2);
-                                if (lenn > 3)
-                                {
-                                    dt2 = new DictTree();
-                                    dt2.Letter = line.Substring(2, 2);
-                                    if (lenn > 5)
-                                    {
-                                        dt3 = new DictTree();
-                                        dt3.Letter = line.Substring(4, 2);
-                                        if (lenn > 7)
-                                        {
-                                            dt4 = new DictTree();
-                                            dt4.Letter = line.Substring(6);
-                                            dt4.dictWords = new List<DictWord>();
-                                            DictWord dictWord = new DictWord();
-                                            dictWord.wholeWord = line;
-                                            dictWord.type = tokens[1].ToLower();
-                                            dictWord.id = GlobalCounter;
-                                            GlobalCounter++;
-                                            dictWord.words = new List<string>();
-                                            for (int i = 2; i < tokens.Length; i++)
-                                            {
-                                                dictWord.words.Add(tokens[i]);
-                                            }
-                                            dt4.dictWords.Add(dictWord);
-
-                                            dt3.dictTrees = new List<DictTree>();
-                                            dt3.dictTrees.Add(dt4);
-                                        }
-                                        else
-                                        {
-                                            if (lenn != 6)
-                                            {
-                                                dt4 = new DictTree();
-                                                dt4.Letter = line.Substring(6);
-                                                dt4.dictWords = new List<DictWord>();
-                                                DictWord dictWord = new DictWord();
-                                                dictWord.wholeWord = line;
-                                                dictWord.type = tokens[1].ToLower();
-                                                dictWord.words = new List<string>();
-                                                for (int i = 2; i < tokens.Length; i++)
-                                                {
-                                                    dictWord.words.Add(tokens[i]);
-                                                }
-                                                dt4.dictWords.Add(dictWord);
-
-                                                dt3.dictTrees = new List<DictTree>();
-                                                dt3.dictTrees.Add(dt4);
-
-                                            }
-                                            else
-                                            {
-                                                if (dt3.dictWords == null)
-                                                    dt3.dictWords = new List<DictWord>();
-                                                DictWord dictWord = new DictWord();
-                                                dictWord.wholeWord = line;
-                                                dictWord.type = tokens[1].ToLower();
-                                                dictWord.words = new List<string>();
-                                                for (int i = 2; i < tokens.Length; i++)
-                                                {
-                                                    dictWord.words.Add(tokens[i]);
-                                                }
-                                                dt3.dictWords.Add(dictWord);
-                                            }
-                                        }
-                                        if (dt2.dictTrees == null)
-                                            dt2.dictTrees = new List<DictTree>();
-                                        dt2.dictTrees.Add(dt3);
-                                    }
-                                    else
-                                    {
-                                        if (lenn != 4)
-                                        {
-                                            //if (dt2.Variants == null)
-                                            //    dt2.Variants = new List<string>();
-                                            //dt2.Variants.Add(line.Substring(4));
-
-                                            dt4 = new DictTree();
-                                            dt4.Letter = line.Substring(4);
-                                            dt4.dictWords = new List<DictWord>();
-                                            DictWord dictWord = new DictWord();
-                                            dictWord.wholeWord = line;
-                                            dictWord.type = tokens[1].ToLower();
-                                            dictWord.words = new List<string>();
-                                            for (int i = 2; i < tokens.Length; i++)
-                                            {
-                                                dictWord.words.Add(tokens[i]);
-                                            }
-                                            dt4.dictWords.Add(dictWord);
-
-                                            dt2.dictTrees = new List<DictTree>();
-                                            dt2.dictTrees.Add(dt4);
-                                        }
-                                        else
-                                        {
-                                            dt2.dictWords = new List<DictWord>();
-                                            DictWord dictWord = new DictWord();
-                                            dictWord.wholeWord = line;
-                                            dictWord.type = tokens[1].ToLower();
-                                            dictWord.words = new List<string>();
-                                            for (int i = 2; i < tokens.Length; i++)
-                                            {
-                                                dictWord.words.Add(tokens[i]);
-                                            }
-                                            dt2.dictWords.Add(dictWord);
-                                        }
-                                    }
-                                    if (dt.dictTrees == null)
-                                        dt.dictTrees = new List<DictTree>();
-                                    dt.dictTrees.Add(dt2);
-                                }
-                                else
-                                {
-                                    if (lenn != 2)
-                                    {
-                                        // if (dt.Variants == null)
-                                        //     dt.Variants = new List<string>();
-                                        // dt.Variants.Add(line.Substring(2));
-
-                                        dt4 = new DictTree();
-                                        dt4.Letter = line.Substring(2);
-                                        dt4.dictWords = new List<DictWord>();
-                                        DictWord dictWord = new DictWord();
-                                        dictWord.wholeWord = line;
-                                        dictWord.type = tokens[1].ToLower();
-                                        dictWord.words = new List<string>();
-                                        for (int i = 2; i < tokens.Length; i++)
-                                        {
-                                            dictWord.words.Add(tokens[i]);
-                                        }
-                                        dt4.dictWords.Add(dictWord);
-
-                                        dt.dictTrees = new List<DictTree>();
-                                        dt.dictTrees.Add(dt4);
-
-                                    }
-                                    else
-                                    {
-                                        dt.dictWords = new List<DictWord>();
-                                        DictWord dictWord = new DictWord();
-                                        dictWord.wholeWord = line;
-                                        dictWord.type = tokens[1].ToLower();
-                                        dictWord.words = new List<string>();
-                                        for (int i = 2; i < tokens.Length; i++)
-                                        {
-                                            dictWord.words.Add(tokens[i]);
-                                        }
-                                        dt.dictWords.Add(dictWord);
-
-                                    }
-                                }
-                                if (myDict.tree == null)
-                                    myDict.tree = new List<DictTree>();
-                                myDict.tree.Add(dt);
-                            }
-                            else
-                            {
-                                dt = new DictTree();
-                                dt.Letter = line.Substring(0);
-                                if (myDict.tree == null)
-                                    myDict.tree = new List<DictTree>();
-                                myDict.tree.Add(dt);
-                            }
-                        }
-                        else
-                        {
-                            if (lenn > 3)
-                            {
-                                int y = -1;
-                                if (myDict.tree[t].dictTrees == null)
-                                    myDict.tree[t].dictTrees = new List<DictTree>();
-                                else
-                                    y = myDict.tree[t].dictTrees.FindIndex(x => x.Letter == line.Substring(2, 2));
-                                if (y == -1)
-                                {
-                                    if (lenn > 3)
-                                    {
-                                        dt2 = new DictTree();
-                                        dt2.Letter = line.Substring(2, 2);
-                                        if (lenn > 5)
-                                        {
-                                            dt3 = new DictTree();
-                                            dt3.Letter = line.Substring(4, 2);
-                                            if (lenn > 7)
-                                            {
-                                                dt4 = new DictTree();
-                                                dt4.Letter = line.Substring(6);
-                                                dt4.dictWords = new List<DictWord>();
-                                                DictWord dictWord = new DictWord();
-                                                dictWord.wholeWord = line;
-                                                dictWord.type = tokens[1].ToLower();
-                                                dictWord.words = new List<string>();
-                                                for (int i = 2; i < tokens.Length; i++)
-                                                {
-                                                    dictWord.words.Add(tokens[i]);
-                                                }
-                                                dt4.dictWords.Add(dictWord);
-
-                                                dt3.dictTrees = new List<DictTree>();
-                                                dt3.dictTrees.Add(dt4);
-                                            }
-                                            else
-                                            {
-                                                if (lenn != 6)
-                                                {
-                                                    //    if (dt3.Variants == null)
-                                                    //        dt3.Variants = new List<string>();
-                                                    //    dt3.Variants.Add(line.Substring(6));
-
-                                                    dt4 = new DictTree();
-                                                    dt4.Letter = line.Substring(6);
-                                                    dt4.dictWords = new List<DictWord>();
-                                                    DictWord dictWord = new DictWord();
-                                                    dictWord.wholeWord = line;
-                                                    dictWord.type = tokens[1].ToLower();
-                                                    dictWord.words = new List<string>();
-                                                    for (int i = 2; i < tokens.Length; i++)
-                                                    {
-                                                        dictWord.words.Add(tokens[i]);
-                                                    }
-                                                    dt4.dictWords.Add(dictWord);
-
-                                                    dt3.dictTrees = new List<DictTree>();
-                                                    dt3.dictTrees.Add(dt4);
-
-                                                }
-                                                else
-                                                {
-                                                    dt3.dictWords = new List<DictWord>();
-                                                    DictWord dictWord = new DictWord();
-                                                    dictWord.wholeWord = line;
-                                                    dictWord.type = tokens[1].ToLower();
-                                                    dictWord.words = new List<string>();
-                                                    for (int i = 2; i < tokens.Length; i++)
-                                                    {
-                                                        dictWord.words.Add(tokens[i]);
-                                                    }
-                                                    dt3.dictWords.Add(dictWord);
-                                                }
-                                            }
-                                            //if (dt2.dictTrees == null)
-                                            dt2.dictTrees = new List<DictTree>();
-                                            dt2.dictTrees.Add(dt3);
-                                        }
-                                        else
-                                        {
-                                            if (lenn != 4)
-                                            {
-                                                // if (dt2.Variants == null)
-                                                //    dt2.Variants = new List<string>();
-                                                //dt2.Variants.Add(line.Substring(4));
-
-                                                dt3 = new DictTree();
-                                                dt3.Letter = line.Substring(4);
-                                                dt3.dictWords = new List<DictWord>();
-                                                DictWord dictWord = new DictWord();
-                                                dictWord.wholeWord = line;
-                                                dictWord.type = tokens[1].ToLower();
-                                                dictWord.words = new List<string>();
-                                                for (int i = 2; i < tokens.Length; i++)
-                                                {
-                                                    dictWord.words.Add(tokens[i]);
-                                                }
-                                                dt3.dictWords.Add(dictWord);
-
-                                                dt2.dictTrees = new List<DictTree>();
-                                                dt2.dictTrees.Add(dt3);
-
-
-                                            }
-                                            else
-                                            {
-                                                dt2.dictWords = new List<DictWord>();
-                                                DictWord dictWord = new DictWord();
-                                                dictWord.wholeWord = line;
-                                                dictWord.type = tokens[1].ToLower();
-                                                dictWord.words = new List<string>();
-                                                for (int i = 2; i < tokens.Length; i++)
-                                                {
-                                                    dictWord.words.Add(tokens[i]);
-                                                }
-                                                dt2.dictWords.Add(dictWord);
-                                            }
-                                        }
-                                        if (myDict.tree[t].dictTrees == null)
-                                            myDict.tree[t].dictTrees = new List<DictTree>();
-                                        myDict.tree[t].dictTrees.Add(dt2);
-                                    }
-                                    else
-                                    {
-                                        if (lenn != 2)
-                                        {
-                                            //        if (myDict.tree[t].Variants == null)
-                                            //            myDict.tree[t].Variants = new List<string>();
-                                            //        myDict.tree[t].Variants.Add(line.Substring(2));
-
-                                            dt3 = new DictTree();
-                                            dt3.Letter = line.Substring(2);
-                                            dt3.dictWords = new List<DictWord>();
-                                            DictWord dictWord = new DictWord();
-                                            dictWord.wholeWord = line;
-                                            dictWord.type = tokens[1].ToLower();
-                                            dictWord.words = new List<string>();
-                                            for (int i = 2; i < tokens.Length; i++)
-                                            {
-                                                dictWord.words.Add(tokens[i]);
-                                            }
-                                            dt3.dictWords.Add(dictWord);
-
-                                            if (myDict.tree[t].dictTrees == null)
-                                                myDict.tree[t].dictTrees = new List<DictTree>();
-                                            myDict.tree[t].dictTrees.Add(dt3);
-
-                                        }
-                                        else
-                                        {
-                                            if (myDict.tree[t].dictWords == null)
-                                                myDict.tree[t].dictWords = new List<DictWord>();
-                                            DictWord dictWord = new DictWord();
-                                            dictWord.wholeWord = line;
-                                            dictWord.type = tokens[1].ToLower();
-                                            dictWord.words = new List<string>();
-                                            for (int i = 2; i < tokens.Length; i++)
-                                            {
-                                                dictWord.words.Add(tokens[i]);
-                                            }
-                                            myDict.tree[t].dictWords.Add(dictWord);
-                                        }
-
-                                    }
-
-                                }
-                                else
-                                {
-                                    if (lenn > 5)
-                                    {
-                                        int z = -1;
-                                        if (myDict.tree[t].dictTrees[y].dictTrees == null)
-                                            myDict.tree[t].dictTrees[y].dictTrees = new List<DictTree>();
-                                        else
-                                            z = myDict.tree[t].dictTrees[y].dictTrees.FindIndex(x => x.Letter == line.Substring(4, 2));
-                                        if (z == -1)
-                                        {
-                                            if (lenn > 5)
-                                            {
-                                                dt3 = new DictTree();
-                                                dt3.Letter = line.Substring(4, 2);
-                                                if (lenn > 7)
-                                                {
-                                                    dt4 = new DictTree();
-                                                    dt4.Letter = line.Substring(6);
-                                                    dt4.dictWords = new List<DictWord>();
-                                                    DictWord dictWord = new DictWord();
-                                                    dictWord.wholeWord = line;
-                                                    dictWord.type = tokens[1].ToLower();
-                                                    dictWord.words = new List<string>();
-                                                    for (int i = 2; i < tokens.Length; i++)
-                                                    {
-                                                        dictWord.words.Add(tokens[i]);
-                                                    }
-                                                    dt4.dictWords.Add(dictWord);
-
-                                                    dt3.dictTrees = new List<DictTree>();
-                                                    dt3.dictTrees.Add(dt4);
-                                                }
-                                                else
-                                                {
-                                                    if (lenn != 6)
-                                                    {
-                                                        //  if (dt3.Variants == null)
-                                                        //      dt3.Variants = new List<string>();
-                                                        //  dt3.Variants.Add(line.Substring(6));
-
-                                                        dt4 = new DictTree();
-                                                        dt4.Letter = line.Substring(6);
-                                                        dt4.dictWords = new List<DictWord>();
-                                                        DictWord dictWord = new DictWord();
-                                                        dictWord.wholeWord = line;
-                                                        dictWord.type = tokens[1].ToLower();
-                                                        dictWord.words = new List<string>();
-                                                        for (int i = 2; i < tokens.Length; i++)
-                                                        {
-                                                            dictWord.words.Add(tokens[i]);
-                                                        }
-                                                        dt4.dictWords.Add(dictWord);
-
-                                                        dt3.dictTrees = new List<DictTree>();
-                                                        dt3.dictTrees.Add(dt4);
-                                                    }
-                                                    else
-                                                    {
-                                                        dt3.dictWords = new List<DictWord>();
-                                                        DictWord dictWord = new DictWord();
-                                                        dictWord.wholeWord = line;
-                                                        dictWord.type = tokens[1].ToLower();
-                                                        dictWord.words = new List<string>();
-                                                        for (int i = 2; i < tokens.Length; i++)
-                                                        {
-                                                            dictWord.words.Add(tokens[i]);
-                                                        }
-                                                        dt3.dictWords.Add(dictWord);
-                                                    }
-
-                                                }
-                                                if (myDict.tree[t].dictTrees[y].dictTrees == null)
-                                                    myDict.tree[t].dictTrees[y].dictTrees = new List<DictTree>();
-                                                myDict.tree[t].dictTrees[y].dictTrees.Add(dt3);
-                                            }
-                                            else
-                                            {
-                                                if (lenn != 4)
-                                                {
-                                                    //  if (myDict.tree[t].dictTrees[y].Variants == null)
-                                                    //      myDict.tree[t].dictTrees[y].Variants = new List<string>();
-                                                    //  myDict.tree[t].dictTrees[y].Variants.Add(line.Substring(4));
-
-                                                    dt3 = new DictTree();
-                                                    dt3.Letter = line.Substring(4);
-                                                    dt3.dictWords = new List<DictWord>();
-                                                    DictWord dictWord = new DictWord();
-                                                    dictWord.wholeWord = line;
-                                                    dictWord.type = tokens[1].ToLower();
-                                                    dictWord.words = new List<string>();
-                                                    for (int i = 2; i < tokens.Length; i++)
-                                                    {
-                                                        dictWord.words.Add(tokens[i]);
-                                                    }
-                                                    dt3.dictWords.Add(dictWord);
-
-                                                    if (myDict.tree[t].dictTrees[y].dictTrees == null)
-                                                        myDict.tree[t].dictTrees[y].dictTrees = new List<DictTree>();
-                                                    myDict.tree[t].dictTrees[y].dictTrees.Add(dt3);
-
-                                                }
-                                                else
-                                                {
-                                                    if (myDict.tree[t].dictTrees[y].dictWords == null)
-                                                        myDict.tree[t].dictTrees[y].dictWords = new List<DictWord>();
-                                                    DictWord dictWord = new DictWord();
-                                                    dictWord.wholeWord = line;
-                                                    dictWord.type = tokens[1].ToLower();
-                                                    dictWord.words = new List<string>();
-                                                    for (int i = 2; i < tokens.Length; i++)
-                                                    {
-                                                        dictWord.words.Add(tokens[i]);
-                                                    }
-                                                    myDict.tree[t].dictTrees[y].dictWords.Add(dictWord);
-                                                }
-
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (lenn > 7)
-                                            {
-                                                int z1 = -1;
-                                                if (myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees == null)
-                                                {
-                                                    myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees = new List<DictTree>();
-                                                }
-                                                else
-                                                {
-                                                    z1 = myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees.FindIndex(x => x.Letter == line.Substring(6, 2));
-                                                }
-                                                if (z1 == -1)
-                                                {
-                                                    if (lenn > 7)
-                                                    {
-                                                        dt4 = new DictTree();
-                                                        dt4.Letter = line.Substring(6);
-                                                        dt4.dictWords = new List<DictWord>();
-                                                        DictWord dictWord = new DictWord();
-                                                        dictWord.wholeWord = line;
-                                                        dictWord.type = tokens[1].ToLower();
-                                                        dictWord.words = new List<string>();
-                                                        for (int i = 2; i < tokens.Length; i++)
-                                                        {
-                                                            dictWord.words.Add(tokens[i]);
-                                                        }
-                                                        dt4.dictWords.Add(dictWord);
-
-                                                        if (myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees == null)
-                                                            myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees = new List<DictTree>();
-                                                        myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees.Add(dt4);
-                                                    }
-                                                    else
-                                                    {
-                                                        if (lenn != 6)
-                                                        {
-                                                            //  if (myDict.tree[t].dictTrees[y].dictTrees[z].Variants == null)
-                                                            //     myDict.tree[t].dictTrees[y].dictTrees[z].Variants = new List<string>();
-                                                            // myDict.tree[t].dictTrees[y].dictTrees[z].Variants.Add(line.Substring(6));
-
-                                                            dt4 = new DictTree();
-                                                            dt4.Letter = line.Substring(6);
-                                                            dt4.dictWords = new List<DictWord>();
-                                                            DictWord dictWord = new DictWord();
-                                                            dictWord.wholeWord = line;
-                                                            dictWord.type = tokens[1].ToLower();
-                                                            dictWord.words = new List<string>();
-                                                            for (int i = 2; i < tokens.Length; i++)
-                                                            {
-                                                                dictWord.words.Add(tokens[i]);
-                                                            }
-                                                            dt4.dictWords.Add(dictWord);
-
-                                                            if (myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees == null)
-                                                                myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees = new List<DictTree>();
-                                                            myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees.Add(dt4);
-
-                                                        }
-                                                        else
-                                                        {
-                                                            if (myDict.tree[t].dictTrees[y].dictTrees[z].dictWords == null)
-                                                                myDict.tree[t].dictTrees[y].dictTrees[z].dictWords = new List<DictWord>();
-                                                            DictWord dictWord = new DictWord();
-                                                            dictWord.wholeWord = line;
-                                                            dictWord.type = tokens[1].ToLower();
-                                                            dictWord.words = new List<string>();
-                                                            for (int i = 2; i < tokens.Length; i++)
-                                                            {
-                                                                dictWord.words.Add(tokens[i]);
-                                                            }
-                                                            myDict.tree[t].dictTrees[y].dictTrees[z].dictWords.Add(dictWord);
-                                                        }
-
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    if (lenn != 8)
-                                                    {
-                                                        // if (myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees[z1].Variants == null)
-                                                        //     myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees[z1].Variants = new List<string>();
-                                                        // myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees[z1].Variants.Add(line.Substring(6));
-
-                                                        dt4 = new DictTree();
-                                                        dt4.Letter = line.Substring(8);
-                                                        dt4.dictWords = new List<DictWord>();
-                                                        DictWord dictWord = new DictWord();
-                                                        dictWord.wholeWord = line;
-                                                        dictWord.type = tokens[1].ToLower();
-                                                        dictWord.words = new List<string>();
-                                                        for (int i = 2; i < tokens.Length; i++)
-                                                        {
-                                                            dictWord.words.Add(tokens[i]);
-                                                        }
-                                                        dt4.dictWords.Add(dictWord);
-
-                                                        if (myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees[z1].dictTrees == null)
-                                                            myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees[z1].dictTrees = new List<DictTree>();
-                                                        myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees[z1].dictTrees.Add(dt4);
-
-
-
-                                                    }
-                                                    else
-                                                    {
-                                                        if (myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees[z1].dictWords == null)
-                                                            myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees[z1].dictWords = new List<DictWord>();
-                                                        DictWord dictWord = new DictWord();
-                                                        dictWord.wholeWord = line;
-                                                        dictWord.type = tokens[1].ToLower();
-                                                        dictWord.words = new List<string>();
-                                                        for (int i = 2; i < tokens.Length; i++)
-                                                        {
-                                                            dictWord.words.Add(tokens[i]);
-                                                        }
-                                                        myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees[z1].dictWords.Add(dictWord);
-                                                    }
-
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (lenn != 6)
-                                                {
-                                                    // if (myDict.tree[t].dictTrees[y].dictTrees[z].Variants == null)
-                                                    //      myDict.tree[t].dictTrees[y].dictTrees[z].Variants = new List<string>();
-                                                    // myDict.tree[t].dictTrees[y].dictTrees[z].Variants.Add(line.Substring(6));
-
-                                                    dt4 = new DictTree();
-                                                    dt4.Letter = line.Substring(6);
-                                                    dt4.dictWords = new List<DictWord>();
-                                                    DictWord dictWord = new DictWord();
-                                                    dictWord.wholeWord = line;
-                                                    dictWord.type = tokens[1].ToLower();
-                                                    dictWord.words = new List<string>();
-                                                    for (int i = 2; i < tokens.Length; i++)
-                                                    {
-                                                        dictWord.words.Add(tokens[i]);
-                                                    }
-                                                    dt4.dictWords.Add(dictWord);
-
-                                                    if (myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees == null)
-                                                        myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees = new List<DictTree>();
-                                                    myDict.tree[t].dictTrees[y].dictTrees[z].dictTrees.Add(dt4);
-
-                                                }
-                                                else
-                                                {
-                                                    if (myDict.tree[t].dictTrees[y].dictTrees[z].dictWords == null)
-                                                        myDict.tree[t].dictTrees[y].dictTrees[z].dictWords = new List<DictWord>();
-                                                    DictWord dictWord = new DictWord();
-                                                    dictWord.wholeWord = line;
-                                                    dictWord.type = tokens[1].ToLower();
-                                                    dictWord.words = new List<string>();
-                                                    for (int i = 2; i < tokens.Length; i++)
-                                                    {
-                                                        dictWord.words.Add(tokens[i]);
-                                                    }
-                                                    myDict.tree[t].dictTrees[y].dictTrees[z].dictWords.Add(dictWord);
-                                                }
-
-                                                //// нашли хотя здесь в одной букве могут быть различия
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (lenn != 4)
-                                        {
-                                            //// нашли хотя здесь в одной букве могут быть различия
-                                            // if (myDict.tree[t].dictTrees[y].Variants == null)
-                                            //     myDict.tree[t].dictTrees[y].Variants = new List<string>();
-                                            //myDict.tree[t].dictTrees[y].Variants.Add(line.Substring(4));
-
-                                            dt4 = new DictTree();
-                                            dt4.Letter = line.Substring(4);
-                                            dt4.dictWords = new List<DictWord>();
-                                            DictWord dictWord = new DictWord();
-                                            dictWord.wholeWord = line;
-                                            dictWord.type = tokens[1].ToLower();
-                                            dictWord.words = new List<string>();
-                                            for (int i = 2; i < tokens.Length; i++)
-                                            {
-                                                dictWord.words.Add(tokens[i]);
-                                            }
-                                            dt4.dictWords.Add(dictWord);
-
-                                            if (myDict.tree[t].dictTrees[y].dictTrees == null)
-                                                myDict.tree[t].dictTrees[y].dictTrees = new List<DictTree>();
-                                            myDict.tree[t].dictTrees[y].dictTrees.Add(dt4);
-
-                                        }
-                                        else
-                                        {
-                                            if (myDict.tree[t].dictTrees[y].dictWords == null)
-                                                myDict.tree[t].dictTrees[y].dictWords = new List<DictWord>();
-                                            DictWord dictWord = new DictWord();
-                                            dictWord.wholeWord = line;
-                                            dictWord.type = tokens[1].ToLower();
-                                            dictWord.words = new List<string>();
-                                            for (int i = 2; i < tokens.Length; i++)
-                                            {
-                                                dictWord.words.Add(tokens[i]);
-                                            }
-                                            myDict.tree[t].dictTrees[y].dictWords.Add(dictWord);
-                                        }
-
-
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (lenn != 2)
-                                {
-                                    //  if (myDict.tree[t].Variants == null)
-                                    //      myDict.tree[t].Variants = new List<string>();
-                                    //  myDict.tree[t].Variants.Add(line.Substring(2));
-
-                                    dt4 = new DictTree();
-                                    dt4.Letter = line.Substring(2);
-                                    dt4.dictWords = new List<DictWord>();
-                                    DictWord dictWord = new DictWord();
-                                    dictWord.wholeWord = line;
-                                    dictWord.type = tokens[1].ToLower();
-                                    dictWord.words = new List<string>();
-                                    for (int i = 2; i < tokens.Length; i++)
-                                    {
-                                        dictWord.words.Add(tokens[i]);
-                                    }
-                                    dt4.dictWords.Add(dictWord);
-
-                                    if (myDict.tree[t].dictTrees == null)
-                                        myDict.tree[t].dictTrees = new List<DictTree>();
-                                    myDict.tree[t].dictTrees.Add(dt4);
-
-                                }
-                                else
-                                {
-                                    if (myDict.tree[t].dictWords == null)
-                                        myDict.tree[t].dictWords = new List<DictWord>();
-                                    DictWord dictWord = new DictWord();
-                                    dictWord.wholeWord = line;
-                                    dictWord.type = tokens[1].ToLower();
-                                    dictWord.words = new List<string>();
-                                    for (int i = 2; i < tokens.Length; i++)
-                                    {
-                                        dictWord.words.Add(tokens[i]);
-                                    }
-                                    myDict.tree[t].dictWords.Add(dictWord);
-                                }
-
-                            }
-                        }
+                        mainDict.listWordRange[mainDict.listWordRange.Count - 1].endID = mainDict.dicts.Count;
+                        WordRange wordRange = new WordRange();
+                        wordRange.letter = line.Substring(0, 1);
+                        wordRange.startID = mainDict.dicts.Count;
+                        wordRange.endID = mainDict.dicts.Count;
+                        mainDict.listWordRange.Add(wordRange);
                     }
                     else
+                        mainDict.listWordRange[mainDict.listWordRange.Count - 1].endID = mainDict.dicts.Count;
+
+                }
+                t = -1;
+                if (mainDict.dicts.Count >= 1)
+                {
+                    /* sstart = -1;
+                     eend=-1;
+                     for(int i = 0; i < listWordRange.Count; i++)
+                     {
+                         if(listWordRange[i].letter == line.Substring(0, 1))
+                         {
+                             sstart = listWordRange[i].startID;
+                             eend = listWordRange[i].endID;
+                             break;
+                         }
+                     }
+                     if((sstart != -1)&&(eend!=-1))
+                     {*/
+                    sstart = mainDict.dicts.Count - 1000;
+                    if (sstart < 0)
+                        sstart = 0;
+
+                    for (int i = sstart; i < mainDict.dicts.Count; i++)
                     {
-                        int t = -1;
-                        if (myDict.tree == null)
-                            myDict.tree = new List<DictTree>();
-                        else
-                            t = myDict.tree.FindIndex(x => x.Letter == line.Substring(0));
-                        if (t == -1)
+                        if (mainDict.dicts[i].word == line)
                         {
-                            dt = new DictTree();
-                            dt.Letter = line.Substring(0);
-                            if (myDict.tree == null)
-                                myDict.tree = new List<DictTree>();
-                            myDict.tree.Add(dt);
-                        }
-                        else
-                        {
-                            if (myDict.tree[t].dictWords == null)
-                                myDict.tree[t].dictWords = new List<DictWord>();
-                            DictWord dictWord = new DictWord();
-                            dictWord.wholeWord = line;
-                            dictWord.type = tokens[1].ToLower();
-                            dictWord.words = new List<string>();
-                            for (int i = 2; i < tokens.Length; i++)
-                            {
-                                dictWord.words.Add(tokens[i]);
-                            }
-                            myDict.tree[t].dictWords.Add(dictWord);
-
-
-                            // if (myDict.tree[t].Variants == null)
-                            //     myDict.tree[t].Variants = new List<string>();
-                            // myDict.tree[t].Variants.Add(line.Substring(0));
+                            t = i;
+                            break;
                         }
                     }
+                    /*  }
+                      else
+                      {
+                          throw new Exception("wefwefwfe");
+                      }*/
+                }
+                else
+                    t = -1;
+
+                //t = mainDict.dicts.FindIndex(x => x.word == line);
+
+                if (t == -1)
+                {
+                    DictWord dictWord = new DictWord();
+                    dictWord.id = localCounter;
+                    dictWord.word = line;
+                    dictWord.isMainWord = true;
+                    dictWord.type = tokens[1].ToLower();
+                    mainDict.dicts.Add(dictWord);
+                    mainDict.listWordRange[mainDict.listWordRange.Count - 1].endID = mainDict.dicts.Count;
+                    if (tokens.Length > 2)
+                    {
+                        for (int i = 2; i < tokens.Length; i++)
+                        {
+                            if (tokens[i].Length <= 0)
+                                continue;
+
+                            t = -1;
+
+                            // if ((sstart != -1) && (eend != -1))
+                            // {                            
+
+                            for (int ki = sstart; ki < mainDict.dicts.Count; ki++)
+                            {
+                                if (mainDict.dicts[ki].word == tokens[i].ToLower())
+                                {
+                                    t = ki;
+                                    break;
+                                }
+                            }
+                            //}
+                            /*else
+                            {
+                                throw new Exception("wefwefwfe");
+                            }*/
+
+
+                            //t = mainDict.dicts.FindIndex(x => x.word == tokens[i].ToLower());
+                            if (t == -1)
+                            {
+                                DictWord dictWord1 = new DictWord();
+                                dictWord1.id = localCounter;
+                                dictWord1.isMainWord = false;
+                                //localCounter++;
+                                dictWord1.word = tokens[i].ToLower();
+                                dictWord1.type = tokens[1].ToLower();
+                                mainDict.dicts.Add(dictWord1);
+                                mainDict.listWordRange[mainDict.listWordRange.Count - 1].endID = mainDict.dicts.Count;
+                            }
+                        }
+                    }
+                    localCounter++;
                 }
 
-                // BinaryFormatter сохраняет данные в двоичном формате. Чтобы получить доступ к BinaryFormatter, понадобится
-                // импортировать System.Runtime.Serialization.Formatters.Binary
-                BinaryFormatter binFormat = new BinaryFormatter();
-                // Сохранить объект в локальном файле.
-                using (Stream fStream = new FileStream("user.dat",
-                   FileMode.Create, FileAccess.Write, FileShare.None))
-                {
-                    binFormat.Serialize(fStream, myDict);
-                }
+            }
+
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+  (ThreadStart)delegate ()
+  {
+      myDataContext.strings.Add("end!");
+  }
+  );
+
+            // BinaryFormatter сохраняет данные в двоичном формате. Чтобы получить доступ к BinaryFormatter, понадобится
+            // импортировать System.Runtime.Serialization.Formatters.Binary
+            BinaryFormatter binFormat = new BinaryFormatter();
+            // Сохранить объект в локальном файле.
+            using (Stream fStream = new FileStream("maindict.dat",
+               FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                binFormat.Serialize(fStream, mainDict);
+            }
+        }
+
+        private void loadDict_Click(object sender, RoutedEventArgs e)
+        {
+
+            string path = AppDomain.CurrentDomain.BaseDirectory;
+
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = path;
+            if (openFileDialog.ShowDialog() == true)
+            {
+                globalFile = openFileDialog.FileName;
+                Thread t = new Thread(new ThreadStart(GetMainDict));
+                t.Start();
+
+
                 MessageBox.Show("ВСЕ!");
             }
         }
