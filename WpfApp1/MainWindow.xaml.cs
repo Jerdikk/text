@@ -27,6 +27,7 @@ namespace WpfApp1
     {
         public string wholeWord;
         public string type;
+        public int id;
         public List<string> words;
     }
     [Serializable]
@@ -71,7 +72,7 @@ namespace WpfApp1
     /// </summary>
     public partial class MainWindow : Window
     {
-
+        public int GlobalCounter = 0;
         public MyDict myDict;
         public MyDict loadedMyDict;
         public MyDataContext myDataContext = new MyDataContext();
@@ -249,6 +250,8 @@ namespace WpfApp1
                                             DictWord dictWord = new DictWord();
                                             dictWord.wholeWord = line;
                                             dictWord.type = tokens[1].ToLower();
+                                            dictWord.id = GlobalCounter;
+                                            GlobalCounter++;
                                             dictWord.words = new List<string>();
                                             for (int i = 2; i < tokens.Length; i++)
                                             {

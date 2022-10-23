@@ -36,7 +36,7 @@ namespace WpfApp1
                 for (int j = 0; j < numHidden; j++)
                 {
                     drRnd = (float)rand.Next(-99, 99) / 100.0f;
-                    if (Math.Abs( drRnd) < 0.001) drRnd = 0.01f;
+                    if (Math.Abs(drRnd) < 0.001) drRnd = 0.01f;
                     weightsInput2Hidden.elements[i, j] = drRnd;
                 }
             weightsHidden2Output = new Matrix(numHidden, numOutput);
@@ -96,7 +96,7 @@ namespace WpfApp1
         public void TrainNet(Matrix inputs, Matrix targets)
         {
             Matrix hidden_outputs;
-            
+
             Matrix final_outputs;
             Matrix output_errors;
 
@@ -149,4 +149,6 @@ namespace WpfApp1
 
     }
 
+
+   
 }
