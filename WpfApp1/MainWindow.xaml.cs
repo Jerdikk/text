@@ -276,9 +276,6 @@ namespace WpfApp1
             string[] allText;
             string[] tokens;
 
-            //string tempLine = "";
-            //string tempStr = "";
-
             char[] chars = new char[3];
             chars[0] = '.';
 
@@ -288,13 +285,6 @@ namespace WpfApp1
             List<string> sentList = new List<string>();
             List<string> tokenList = new List<string>();
             List<int> countToken = new List<int>();
-
-
-
-            //Node dt;
-            //Node dt2;
-            //Node dt3;
-            //Node dt4;
 
             int localCounter = 0;
 
@@ -314,8 +304,6 @@ namespace WpfApp1
             allText = File.ReadAllLines(globalFile, Encoding.GetEncoding(1251));
 
             int sstart = 0;
-            // int sstart = -1, eend = -1;
-
             int currentListRangeIndex = 0;
             int currentLevel2ListRangeIndex = 0;
 
@@ -362,7 +350,9 @@ namespace WpfApp1
                         }
                     }
                     else
+                    {
                         wordRange.wordRanges = null;
+                    }
                     wordRange.startID = mainDict.dicts.Count;
                     wordRange.endID = mainDict.dicts.Count;
                     mainDict.listWordRange.Add(wordRange);
