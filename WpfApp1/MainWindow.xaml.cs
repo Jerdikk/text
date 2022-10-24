@@ -25,7 +25,7 @@ namespace WpfApp1
     [Serializable]
     public class WordRange
     {
-        public string letter;        
+        public string letter;
         public int startID;
         public int endID;
         public List<WordRange> wordRanges;
@@ -117,7 +117,7 @@ namespace WpfApp1
 
             lbTest.SetBinding(ListBox.ItemsSourceProperty, binding);
 
-           // myDict = new MyDict();
+            // myDict = new MyDict();
         }
 
         private string ChangeUTF8Space(string targetStr)
@@ -157,7 +157,8 @@ namespace WpfApp1
             if (openFileDialog.ShowDialog() == true)
             {
                 int cc = 0;
-                allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding(1251));
+                //allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding(1251));
+                allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding("utf-8"));
                 foreach (string line in allText)
                 {
                     tempStr = "";
@@ -187,8 +188,66 @@ namespace WpfApp1
                     tokens = sentense.Split(' ');
                     foreach (string token in tokens)
                     {
-                        if (token.Length > 0)
+                        string tempTok = token.Trim();
+                        if (tempTok.Length > 0)
                         {
+
+                            tokenList.Add(tempTok);
+
+
+                            bool found1 = false;
+                            foreach (WordRange wordRange in loadedMyDict.listWordRange)
+                            {
+                                if (wordRange.letter == tempTok.Substring(0, 1))
+                                {
+                                    if (tempTok.Length > 1)
+                                    {
+                                        if (wordRange.wordRanges.Count > 0)
+                                        {
+                                            foreach (WordRange wordRange1 in wordRange.wordRanges)
+                                            {
+                                                if (wordRange1.letter == tempTok.Substring(1, 1))
+                                                {
+                                                    bool found = false;
+                                                    for (int i = wordRange1.startID; i <= wordRange1.endID; i++)
+                                                    {
+                                                        if (loadedMyDict.dicts[i].word == tempTok)
+                                                        {
+                                                            countToken.Add(i);
+                                                            found = true;
+                                                            found1 = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (found)
+                                                        break;
+                                                }
+                                            }
+                                            if (found1)
+                                                break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        for (int i = wordRange.startID; i <= wordRange.endID; i++)
+                                        {
+                                            if (loadedMyDict.dicts[i].word == tempTok)
+                                            {
+                                                countToken.Add(i);
+
+                                                found1 = true;
+                                                break;
+                                            }
+                                        }
+                                        if (found1)
+                                            break;
+
+                                    }
+                                }
+                            }
+                            if (!found1)
+                                countToken.Add(-1);
+                            /*
                             int t = tokenList.FindIndex(x => x == token);
                             if (t == -1)
                             {
@@ -196,7 +255,7 @@ namespace WpfApp1
                                 countToken.Add(1);
                             }
                             else
-                                countToken[t] += 1;
+                                countToken[t] += 1;*/
                         }
 
                     }
@@ -211,7 +270,6 @@ namespace WpfApp1
                 MessageBox.Show("ВСЕ!");
             }
         }
-
 
         public void GetMainDict()
         {
@@ -300,7 +358,7 @@ namespace WpfApp1
                         }
                         else
                         {
-                            
+
                         }
                     }
                     else
@@ -330,7 +388,7 @@ namespace WpfApp1
                             if (foundIndex)
                             {
                                 WordRange wordRange = mainDict.listWordRange[currentListRangeIndex];
-                               // wordRange.letter = line.Substring(0, 1);
+                                // wordRange.letter = line.Substring(0, 1);
                                 //wordRange.startID = mainDict.dicts.Count;
                                 wordRange.endID = mainDict.dicts.Count;
                                 //mainDict.listWordRange.Add(wordRange);
@@ -350,9 +408,9 @@ namespace WpfApp1
                                     {
                                         bool foundIndex1 = false;
                                         int indexx = 0;
-                                        for (int l = 0;l< wordRange.wordRanges.Count; l++)
+                                        for (int l = 0; l < wordRange.wordRanges.Count; l++)
                                         {
-                                            if (wordRange.wordRanges[l].letter== line.Substring(1, 1))
+                                            if (wordRange.wordRanges[l].letter == line.Substring(1, 1))
                                             {
                                                 foundIndex1 = true;
                                                 indexx = l;
@@ -627,7 +685,7 @@ namespace WpfApp1
             // импортировать System.Runtime.Serialization.Formatters.Binary
             BinaryFormatter binFormat = new BinaryFormatter();
             // Сохранить объект в локальном файле.
-            using ( Stream fStream = new FileStream("maindict.dat", FileMode.Create, FileAccess.Write, FileShare.None))
+            using (Stream fStream = new FileStream("maindict.dat", FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 binFormat.Serialize(fStream, mainDict);
             }
@@ -635,7 +693,6 @@ namespace WpfApp1
 
         private void loadDict_Click(object sender, RoutedEventArgs e)
         {
-
             string path = AppDomain.CurrentDomain.BaseDirectory;
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -645,26 +702,37 @@ namespace WpfApp1
                 globalFile = openFileDialog.FileName;
                 Thread t = new Thread(new ThreadStart(GetMainDict));
                 t.Start();
-
-
-                MessageBox.Show("ВСЕ!");
+                //MessageBox.Show("ВСЕ!");
             }
         }
 
-        private void loadUserDict()
+        public void loadUserDict()
         {
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                    {
+                        myDataContext.strings.Add("start loading dict!");
+                    }
+                );
+
             BinaryFormatter binFormat = new BinaryFormatter();
 
             using (Stream fStream = File.OpenRead("maindict.dat"))
             {
                 loadedMyDict = (MainDict)binFormat.Deserialize(fStream);
             }
-            MessageBox.Show("ВСЕ!");
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("end loading dict!");
+                }
+                );
         }
 
         private void loadDictXML_Click(object sender, RoutedEventArgs e)
         {
-            loadUserDict();
+            Thread t = new Thread(new ThreadStart(loadUserDict));
+            t.Start();            
         }
 
         private void testNet_Click(object sender, RoutedEventArgs e)
