@@ -152,7 +152,10 @@ namespace WpfApp1
 
             List<string> sentList = new List<string>();
             List<string> tokenList = new List<string>();
+            List<string> sentTokenList = new List<string>();
+            List<string> sentTokenListFirFile = new List<string>();
             List<int> countToken = new List<int>();
+            List<int> countSentToken = new List<int>();
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
             {
@@ -185,6 +188,8 @@ namespace WpfApp1
 
                 foreach (string sentense in sentList)
                 {
+                    sentTokenList = new List<string>();
+                    countSentToken = new List<int>();
                     tokens = sentense.Split(' ');
                     foreach (string token in tokens)
                     {
@@ -193,7 +198,7 @@ namespace WpfApp1
                         {
 
                             tokenList.Add(tempTok);
-
+                            sentTokenList.Add(tempTok);
 
                             bool found1 = false;
                             foreach (WordRange wordRange in loadedMyDict.listWordRange)
@@ -214,6 +219,7 @@ namespace WpfApp1
                                                         if (loadedMyDict.dicts[i].word == tempTok)
                                                         {
                                                             countToken.Add(i);
+                                                            countSentToken.Add(i);
                                                             found = true;
                                                             found1 = true;
                                                             break;
@@ -234,7 +240,7 @@ namespace WpfApp1
                                             if (loadedMyDict.dicts[i].word == tempTok)
                                             {
                                                 countToken.Add(i);
-
+                                                countSentToken.Add(i);
                                                 found1 = true;
                                                 break;
                                             }
@@ -246,7 +252,10 @@ namespace WpfApp1
                                 }
                             }
                             if (!found1)
+                            {
                                 countToken.Add(-1);
+                                countSentToken.Add(-1);
+                            }
                             /*
                             int t = tokenList.FindIndex(x => x == token);
                             if (t == -1)
@@ -259,6 +268,15 @@ namespace WpfApp1
                         }
 
                     }
+                    string hh = "";
+                    for (int j = 0; j < countSentToken.Count; j++)
+                    {
+                        sentTokenList[j] += ";";
+                        sentTokenList[j] += countSentToken[j].ToString();
+                        hh += sentTokenList[j];
+                    }
+                    sentTokenListFirFile.Add(hh);
+
                 }
                 for (int j = 0; j < countToken.Count; j++)
                 {
@@ -266,6 +284,7 @@ namespace WpfApp1
                     tokenList[j] += countToken[j].ToString();
                 }
                 File.WriteAllLines("2.txt", sentList);
+                File.WriteAllLines("4.txt", sentTokenListFirFile);
                 File.WriteAllLines("3.csv", tokenList);
                 MessageBox.Show("ВСЕ!");
             }
