@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Xml.Serialization;
 
 namespace WpfApp1
 {
@@ -636,7 +637,7 @@ namespace WpfApp1
                     dictWord.isMainWord = true;
                     dictWord.type = tokens[1].ToLower();
                     mainDict.dicts.Add(dictWord);
-                    mainDict.listWordRange[mainDict.listWordRange.Count - 1].endID = mainDict.dicts.Count;
+                   // mainDict.listWordRange[mainDict.listWordRange.Count - 1].endID = mainDict.dicts.Count;
                     if (tokens.Length > 2)
                     {
                         for (int i = 2; i < tokens.Length; i++)
@@ -674,21 +675,67 @@ namespace WpfApp1
                                 dictWord1.word = tokens[i].ToLower();
                                 dictWord1.type = tokens[1].ToLower();
                                 mainDict.dicts.Add(dictWord1);
-                                mainDict.listWordRange[mainDict.listWordRange.Count - 1].endID = mainDict.dicts.Count;
+                              //  mainDict.listWordRange[mainDict.listWordRange.Count - 1].endID = mainDict.dicts.Count;
                             }
                         }
                     }
                     localCounter++;
                 }
+                else
+                {
+                    DictWord dictWord = mainDict.dicts[t];
+                    if (tokens.Length > 2)
+                    {
+                        for (int i = 2; i < tokens.Length; i++)
+                        {
+                            if (tokens[i].Length <= 0)
+                                continue;
 
+                            t = -1;
+
+                            // if ((sstart != -1) && (eend != -1))
+                            // {                            
+
+                            for (int ki = sstart; ki < mainDict.dicts.Count; ki++)
+                            {
+                                if (mainDict.dicts[ki].word == tokens[i].ToLower())
+                                {
+                                    t = ki;
+                                    break;
+                                }
+                            }
+                            //}
+                            /*else
+                            {
+                                throw new Exception("wefwefwfe");
+                            }*/
+
+
+                            //t = mainDict.dicts.FindIndex(x => x.word == tokens[i].ToLower());
+                            if (t == -1)
+                            {
+                                DictWord dictWord1 = new DictWord();
+                                dictWord1.id = dictWord.id;
+                                dictWord1.isMainWord = false;
+                                //localCounter++;
+                                dictWord1.word = tokens[i].ToLower();
+                                dictWord1.type = tokens[1].ToLower();
+                                mainDict.dicts.Add(dictWord1);
+                               // mainDict.listWordRange[currentListRangeIndex].endID = mainDict.dicts.Count;
+                                //mainDict.listWordRange[currentListRangeIndex].wordRanges[currentLevel2ListRangeIndex].endID = mainDict.dicts.Count;
+                            }
+                        }
+                    }
+
+                }
             }
 
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
-  (ThreadStart)delegate ()
-  {
-      myDataContext.strings.Add("end!");
-  }
-  );
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("end!");
+                }
+                );
 
             // BinaryFormatter сохраняет данные в двоичном формате. Чтобы получить доступ к BinaryFormatter, понадобится
             // импортировать System.Runtime.Serialization.Formatters.Binary
@@ -698,6 +745,23 @@ namespace WpfApp1
             {
                 binFormat.Serialize(fStream, mainDict);
             }
+
+            XmlSerializer xmlSerializer = new XmlSerializer(typeof(MainDict));
+
+            // получаем поток, куда будем записывать сериализованный объект
+            using (FileStream fs = new FileStream("maindict.xml", FileMode.OpenOrCreate))
+            {
+                xmlSerializer.Serialize(fs, mainDict);
+
+                
+            }
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("Object has been serialized");
+                }
+                );
+
         }
 
         private void loadDict_Click(object sender, RoutedEventArgs e)
