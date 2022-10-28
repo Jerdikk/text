@@ -75,11 +75,25 @@ namespace WpfApp1
     public class MainDict
     {
         public List<WordRange> listWordRange;
-        public List<DictWord> dicts;
+        public List<DictWord> mainWords;
         public MainDict()
         {
+            listWordRange = new List<WordRange>();
+            mainWords = new List<DictWord>();
+        }
+
+    }
+
+
+    [Serializable]
+    public class AllDict
+    {
+        public List<WordRange> listWordRange;
+        public List<DictWord> dictWords;
+        public AllDict()
+        {
             listWordRange = null;
-            dicts = new List<DictWord>();
+            dictWords = new List<DictWord>();
         }
     }
     public class MyDataContext
@@ -101,7 +115,8 @@ namespace WpfApp1
     {
         public int GlobalCounter = 0;
         //public MyDict myDict;
-        public MainDict loadedMyDict;
+        public AllDict allWordDict;
+        public MainDict mainDictionary;
         public MyDataContext myDataContext = new MyDataContext();
         public TrainSet trainSet;
         public string globalFile;
@@ -202,7 +217,7 @@ namespace WpfApp1
                             sentTokenList.Add(tempTok);
 
                             bool found1 = false;
-                            foreach (WordRange wordRange in loadedMyDict.listWordRange)
+                            foreach (WordRange wordRange in allWordDict.listWordRange)
                             {
                                 if (wordRange.letter == tempTok.Substring(0, 1))
                                 {
@@ -217,7 +232,7 @@ namespace WpfApp1
                                                     bool found = false;
                                                     for (int i = wordRange1.startID; i <= wordRange1.endID; i++)
                                                     {
-                                                        if (loadedMyDict.dicts[i].word == tempTok)
+                                                        if (allWordDict.dictWords[i].word == tempTok)
                                                         {
                                                             countToken.Add(i);
                                                             countSentToken.Add(i);
@@ -238,7 +253,7 @@ namespace WpfApp1
                                     {
                                         for (int i = wordRange.startID; i <= wordRange.endID; i++)
                                         {
-                                            if (loadedMyDict.dicts[i].word == tempTok)
+                                            if (allWordDict.dictWords[i].word == tempTok)
                                             {
                                                 countToken.Add(i);
                                                 countSentToken.Add(i);
@@ -308,10 +323,13 @@ namespace WpfApp1
 
             int localCounter = 0;
 
-            MainDict mainDict = new MainDict();
+            allWordDict = new AllDict();
+            mainDictionary = new MainDict();
+
+           // AllDict mainDict = new AllDict();
 
             ////                             t = myDict.tree.FindIndex(x => x.Letter == line.Substring(0, 1));
-            int cc = 0;
+         //   int cc = 0;
             int t;
             int u;
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
@@ -324,8 +342,8 @@ namespace WpfApp1
             allText = File.ReadAllLines(globalFile, Encoding.GetEncoding(1251));
 
             int sstart = 0;
-            int currentListRangeIndex = 0;
-            int currentLevel2ListRangeIndex = 0;
+           // int currentListRangeIndex = 0;
+           // int currentLevel2ListRangeIndex = 0;
 
             foreach (string line1 in allText)
             {
@@ -345,13 +363,153 @@ namespace WpfApp1
                 int lenn = tokens[0].Length;
 
                 string line = tokens[0].ToLower();
-
-                if (mainDict.listWordRange == null)
+                #region MyRegion
+                /*
+        if (allWordDict.listWordRange == null)
+        {
+            currentListRangeIndex = 0;
+            allWordDict.listWordRange = new List<WordRange>();
+            WordRange wordRange = new WordRange();
+            wordRange.letter = line.Substring(0, 1);
+            if (lenn > 1)
+            {
+                if (wordRange.wordRanges == null)
                 {
-                    currentListRangeIndex = 0;
-                    mainDict.listWordRange = new List<WordRange>();
+                    wordRange.wordRanges = new List<WordRange>();
+                    WordRange wordRange1 = new WordRange();
+                    wordRange1.letter = line.Substring(1, 1);
+                    wordRange1.startID = allWordDict.dictWords.Count;
+                    wordRange1.endID = allWordDict.dictWords.Count;
+                    currentLevel2ListRangeIndex = 0;
+                    wordRange.wordRanges.Add(wordRange1);
+                }
+                else
+                {
+
+                }
+            }
+            else
+            {
+                wordRange.wordRanges = null;
+            }
+            wordRange.startID = allWordDict.dictWords.Count;
+            wordRange.endID = allWordDict.dictWords.Count;
+            allWordDict.listWordRange.Add(wordRange);
+        }
+        else
+        {
+            if (allWordDict.listWordRange[currentListRangeIndex].letter != line.Substring(0, 1))
+            {
+                allWordDict.listWordRange[currentListRangeIndex].endID = allWordDict.dictWords.Count;
+                if (allWordDict.listWordRange.Count > 1)
+                {
+                    bool foundIndex = false;
+                    for (int h = 0; h < allWordDict.listWordRange.Count; h++)
+                    {
+                        if (allWordDict.listWordRange[h].letter == line.Substring(0, 1))
+                        {
+                            currentListRangeIndex = h;
+                            foundIndex = true;
+                            break;
+                        }
+                    }
+
+                    if (foundIndex)
+                    {
+                        WordRange wordRange = allWordDict.listWordRange[currentListRangeIndex];
+                        // wordRange.letter = line.Substring(0, 1);
+                        //wordRange.startID = allWordDict.dicts.Count;
+                        wordRange.endID = allWordDict.dictWords.Count;
+                        //allWordDict.listWordRange.Add(wordRange);
+                        if (lenn > 1)
+                        {
+                            if (wordRange.wordRanges == null)
+                            {
+                                wordRange.wordRanges = new List<WordRange>();
+                                WordRange wordRange1 = new WordRange();
+                                wordRange1.letter = line.Substring(1, 1);
+                                wordRange1.startID = allWordDict.dictWords.Count;
+                                wordRange1.endID = allWordDict.dictWords.Count;
+                                currentLevel2ListRangeIndex = 0;
+                                wordRange.wordRanges.Add(wordRange1);
+                            }
+                            else
+                            {
+                                bool foundIndex1 = false;
+                                int indexx = 0;
+                                for (int l = 0; l < wordRange.wordRanges.Count; l++)
+                                {
+                                    if (wordRange.wordRanges[l].letter == line.Substring(1, 1))
+                                    {
+                                        foundIndex1 = true;
+                                        indexx = l;
+                                        break;
+                                    }
+                                    else
+                                    {
+
+                                    }
+                                }
+                                if (foundIndex1)
+                                {
+                                    wordRange.wordRanges[indexx].endID = allWordDict.dictWords.Count;
+                                    currentLevel2ListRangeIndex = indexx;
+                                }
+                                else
+                                {
+                                    WordRange wordRange1 = new WordRange();
+                                    wordRange1.letter = line.Substring(1, 1);
+                                    wordRange1.startID = allWordDict.dictWords.Count;
+                                    wordRange1.endID = allWordDict.dictWords.Count;
+                                    wordRange.wordRanges.Add(wordRange1);
+                                    currentLevel2ListRangeIndex = wordRange.wordRanges.Count - 1;
+
+                                }
+                            }
+                        }
+                        else
+                            wordRange.wordRanges = null;
+
+                    }
+                    else
+                    {
+                        WordRange wordRange = new WordRange();
+                        wordRange.letter = line.Substring(0, 1);
+                        wordRange.startID = allWordDict.dictWords.Count;
+                        wordRange.endID = allWordDict.dictWords.Count;
+                        allWordDict.listWordRange.Add(wordRange);
+                        currentListRangeIndex = allWordDict.listWordRange.Count - 1;
+                        if (lenn > 1)
+                        {
+                            if (wordRange.wordRanges == null)
+                            {
+                                wordRange.wordRanges = new List<WordRange>();
+                                WordRange wordRange1 = new WordRange();
+                                wordRange1.letter = line.Substring(1, 1);
+                                wordRange1.startID = allWordDict.dictWords.Count;
+                                wordRange1.endID = allWordDict.dictWords.Count;
+                                wordRange.wordRanges.Add(wordRange1);
+                                currentLevel2ListRangeIndex = 0;
+                            }
+                            else
+                            {
+
+                            }
+                        }
+                        else
+                            wordRange.wordRanges = null;
+
+                    }
+
+                }
+                else
+                {
                     WordRange wordRange = new WordRange();
                     wordRange.letter = line.Substring(0, 1);
+                    wordRange.startID = allWordDict.dictWords.Count;
+                    wordRange.endID = allWordDict.dictWords.Count;
+                    allWordDict.listWordRange.Add(wordRange);
+                    currentListRangeIndex = allWordDict.listWordRange.Count - 1;
                     if (lenn > 1)
                     {
                         if (wordRange.wordRanges == null)
@@ -359,10 +517,10 @@ namespace WpfApp1
                             wordRange.wordRanges = new List<WordRange>();
                             WordRange wordRange1 = new WordRange();
                             wordRange1.letter = line.Substring(1, 1);
-                            wordRange1.startID = mainDict.dicts.Count;
-                            wordRange1.endID = mainDict.dicts.Count;
-                            currentLevel2ListRangeIndex = 0;
+                            wordRange1.startID = allWordDict.dictWords.Count;
+                            wordRange1.endID = allWordDict.dictWords.Count;
                             wordRange.wordRanges.Add(wordRange1);
+                            currentLevel2ListRangeIndex = 0;
                         }
                         else
                         {
@@ -370,265 +528,102 @@ namespace WpfApp1
                         }
                     }
                     else
-                    {
                         wordRange.wordRanges = null;
-                    }
-                    wordRange.startID = mainDict.dicts.Count;
-                    wordRange.endID = mainDict.dicts.Count;
-                    mainDict.listWordRange.Add(wordRange);
                 }
-                else
+            }
+            else
+            {
+                if (lenn > 1)
                 {
-                    if (mainDict.listWordRange[/*mainDict.listWordRange.Count - 1*/currentListRangeIndex].letter != line.Substring(0, 1))
+                    if (allWordDict.listWordRange[currentListRangeIndex].wordRanges != null)
                     {
-                        mainDict.listWordRange[/*mainDict.listWordRange.Count - 1*/currentListRangeIndex].endID = mainDict.dicts.Count;
-                        if (mainDict.listWordRange.Count > 1)
+                        if (allWordDict.listWordRange[currentListRangeIndex].wordRanges[currentLevel2ListRangeIndex].letter != line.Substring(1, 1))
                         {
-                            bool foundIndex = false;
-                            for (int h = 0; h < mainDict.listWordRange.Count; h++)
+                            WordRange wordRange = allWordDict.listWordRange[currentListRangeIndex];
+
+                            bool foundIndex1 = false;
+                            int indexx = 0;
+                            for (int l = 0; l < wordRange.wordRanges.Count; l++)
                             {
-                                if (mainDict.listWordRange[h].letter == line.Substring(0, 1))
+                                if (wordRange.wordRanges[l].letter == line.Substring(1, 1))
                                 {
-                                    currentListRangeIndex = h;
-                                    foundIndex = true;
+                                    foundIndex1 = true;
+                                    indexx = l;
                                     break;
                                 }
-                            }
-
-                            if (foundIndex)
-                            {
-                                WordRange wordRange = mainDict.listWordRange[currentListRangeIndex];
-                                // wordRange.letter = line.Substring(0, 1);
-                                //wordRange.startID = mainDict.dicts.Count;
-                                wordRange.endID = mainDict.dicts.Count;
-                                //mainDict.listWordRange.Add(wordRange);
-                                if (lenn > 1)
-                                {
-                                    if (wordRange.wordRanges == null)
-                                    {
-                                        wordRange.wordRanges = new List<WordRange>();
-                                        WordRange wordRange1 = new WordRange();
-                                        wordRange1.letter = line.Substring(1, 1);
-                                        wordRange1.startID = mainDict.dicts.Count;
-                                        wordRange1.endID = mainDict.dicts.Count;
-                                        currentLevel2ListRangeIndex = 0;
-                                        wordRange.wordRanges.Add(wordRange1);
-                                    }
-                                    else
-                                    {
-                                        bool foundIndex1 = false;
-                                        int indexx = 0;
-                                        for (int l = 0; l < wordRange.wordRanges.Count; l++)
-                                        {
-                                            if (wordRange.wordRanges[l].letter == line.Substring(1, 1))
-                                            {
-                                                foundIndex1 = true;
-                                                indexx = l;
-                                                break;
-                                            }
-                                            else
-                                            {
-
-                                            }
-                                        }
-                                        if (foundIndex1)
-                                        {
-                                            wordRange.wordRanges[indexx].endID = mainDict.dicts.Count;
-                                            currentLevel2ListRangeIndex = indexx;
-                                        }
-                                        else
-                                        {
-                                            WordRange wordRange1 = new WordRange();
-                                            wordRange1.letter = line.Substring(1, 1);
-                                            wordRange1.startID = mainDict.dicts.Count;
-                                            wordRange1.endID = mainDict.dicts.Count;
-                                            wordRange.wordRanges.Add(wordRange1);
-                                            currentLevel2ListRangeIndex = wordRange.wordRanges.Count - 1;
-
-                                        }
-                                    }
-                                }
                                 else
-                                    wordRange.wordRanges = null;
+                                {
 
+                                }
+                            }
+                            if (foundIndex1)
+                            {
+                                wordRange.wordRanges[indexx].endID = allWordDict.dictWords.Count;
+                                currentLevel2ListRangeIndex = indexx;
                             }
                             else
                             {
-                                WordRange wordRange = new WordRange();
-                                wordRange.letter = line.Substring(0, 1);
-                                wordRange.startID = mainDict.dicts.Count;
-                                wordRange.endID = mainDict.dicts.Count;
-                                mainDict.listWordRange.Add(wordRange);
-                                currentListRangeIndex = mainDict.listWordRange.Count - 1;
-                                if (lenn > 1)
-                                {
-                                    if (wordRange.wordRanges == null)
-                                    {
-                                        wordRange.wordRanges = new List<WordRange>();
-                                        WordRange wordRange1 = new WordRange();
-                                        wordRange1.letter = line.Substring(1, 1);
-                                        wordRange1.startID = mainDict.dicts.Count;
-                                        wordRange1.endID = mainDict.dicts.Count;
-                                        wordRange.wordRanges.Add(wordRange1);
-                                        currentLevel2ListRangeIndex = 0;
-                                    }
-                                    else
-                                    {
-
-                                    }
-                                }
-                                else
-                                    wordRange.wordRanges = null;
-
-                            }
-
+                                WordRange wordRange1 = new WordRange();
+                                wordRange1.letter = line.Substring(1, 1);
+                                wordRange1.startID = allWordDict.dictWords.Count;
+                                wordRange1.endID = allWordDict.dictWords.Count;
+                                wordRange.wordRanges.Add(wordRange1);
+                                currentLevel2ListRangeIndex = wordRange.wordRanges.Count - 1;
+                            }                                                                      
                         }
                         else
                         {
-                            WordRange wordRange = new WordRange();
-                            wordRange.letter = line.Substring(0, 1);
-                            wordRange.startID = mainDict.dicts.Count;
-                            wordRange.endID = mainDict.dicts.Count;
-                            mainDict.listWordRange.Add(wordRange);
-                            currentListRangeIndex = mainDict.listWordRange.Count - 1;
-                            if (lenn > 1)
-                            {
-                                if (wordRange.wordRanges == null)
-                                {
-                                    wordRange.wordRanges = new List<WordRange>();
-                                    WordRange wordRange1 = new WordRange();
-                                    wordRange1.letter = line.Substring(1, 1);
-                                    wordRange1.startID = mainDict.dicts.Count;
-                                    wordRange1.endID = mainDict.dicts.Count;
-                                    wordRange.wordRanges.Add(wordRange1);
-                                    currentLevel2ListRangeIndex = 0;
-                                }
-                                else
-                                {
-
-                                }
-                            }
-                            else
-                                wordRange.wordRanges = null;
+                            allWordDict.listWordRange[currentListRangeIndex].wordRanges[currentLevel2ListRangeIndex].endID = allWordDict.dictWords.Count;
                         }
                     }
                     else
                     {
-                        if (lenn > 1)
+                        WordRange wordRange = allWordDict.listWordRange[currentListRangeIndex];
+                        if (wordRange.wordRanges == null)
                         {
-                            if (mainDict.listWordRange[currentListRangeIndex].wordRanges != null)
-                            {
-                                if (mainDict.listWordRange[currentListRangeIndex].wordRanges[currentLevel2ListRangeIndex].letter != line.Substring(1, 1))
-                                {
-                                    WordRange wordRange = mainDict.listWordRange[currentListRangeIndex];
-
-                                    bool foundIndex1 = false;
-                                    int indexx = 0;
-                                    for (int l = 0; l < wordRange.wordRanges.Count; l++)
-                                    {
-                                        if (wordRange.wordRanges[l].letter == line.Substring(1, 1))
-                                        {
-                                            foundIndex1 = true;
-                                            indexx = l;
-                                            break;
-                                        }
-                                        else
-                                        {
-
-                                        }
-                                    }
-                                    if (foundIndex1)
-                                    {
-                                        wordRange.wordRanges[indexx].endID = mainDict.dicts.Count;
-                                        currentLevel2ListRangeIndex = indexx;
-                                    }
-                                    else
-                                    {
-                                        WordRange wordRange1 = new WordRange();
-                                        wordRange1.letter = line.Substring(1, 1);
-                                        wordRange1.startID = mainDict.dicts.Count;
-                                        wordRange1.endID = mainDict.dicts.Count;
-                                        wordRange.wordRanges.Add(wordRange1);
-                                        currentLevel2ListRangeIndex = wordRange.wordRanges.Count - 1;
-                                    }
-
-
-                                    /*
-                                    WordRange wordRange1 = new WordRange();
-                                    wordRange1.letter = line.Substring(1, 1);
-                                    wordRange1.startID = mainDict.dicts.Count;
-                                    wordRange1.endID = mainDict.dicts.Count;
-                                    wordRange.wordRanges.Add(wordRange1);
-                                    currentLevel2ListRangeIndex = 0;*/
-                                }
-                                else
-                                {
-                                    mainDict.listWordRange[currentListRangeIndex].wordRanges[currentLevel2ListRangeIndex].endID = mainDict.dicts.Count;
-                                }
-                            }
-                            else
-                            {
-                                WordRange wordRange = mainDict.listWordRange[currentListRangeIndex];
-                                if (wordRange.wordRanges == null)
-                                {
-                                    wordRange.wordRanges = new List<WordRange>();
-                                    WordRange wordRange1 = new WordRange();
-                                    wordRange1.letter = line.Substring(1, 1);
-                                    wordRange1.startID = mainDict.dicts.Count;
-                                    wordRange1.endID = mainDict.dicts.Count;
-                                    wordRange.wordRanges.Add(wordRange1);
-                                    currentLevel2ListRangeIndex = 0;
-                                }
-                                else
-                                {
-                                    wordRange.wordRanges[currentLevel2ListRangeIndex].endID = mainDict.dicts.Count;
-                                }
-
-                            }
+                            wordRange.wordRanges = new List<WordRange>();
+                            WordRange wordRange1 = new WordRange();
+                            wordRange1.letter = line.Substring(1, 1);
+                            wordRange1.startID = allWordDict.dictWords.Count;
+                            wordRange1.endID = allWordDict.dictWords.Count;
+                            wordRange.wordRanges.Add(wordRange1);
+                            currentLevel2ListRangeIndex = 0;
                         }
-                        mainDict.listWordRange[currentListRangeIndex].endID = mainDict.dicts.Count;
-                    }
+                        else
+                        {
+                            wordRange.wordRanges[currentLevel2ListRangeIndex].endID = allWordDict.dictWords.Count;
+                        }
 
+                    }
                 }
+                allWordDict.listWordRange[currentListRangeIndex].endID = allWordDict.dictWords.Count;
+            }
+
+        }*/ 
+                #endregion
+
+
                 t = -1;
-                if (mainDict.dicts.Count >= 1)
+                if (allWordDict.dictWords.Count >= 1)
                 {
-                    /* sstart = -1;
-                     eend=-1;
-                     for(int i = 0; i < listWordRange.Count; i++)
-                     {
-                         if(listWordRange[i].letter == line.Substring(0, 1))
-                         {
-                             sstart = listWordRange[i].startID;
-                             eend = listWordRange[i].endID;
-                             break;
-                         }
-                     }
-                     if((sstart != -1)&&(eend!=-1))
-                     {*/
-                    sstart = mainDict.dicts.Count - 1000;
+                   
+                    sstart = allWordDict.dictWords.Count - 1000;
                     if (sstart < 0)
                         sstart = 0;
 
-                    for (int i = sstart; i < mainDict.dicts.Count; i++)
+                    for (int i = sstart; i < allWordDict.dictWords.Count; i++)
                     {
-                        if (mainDict.dicts[i].word == line)
+                        if (allWordDict.dictWords[i].word == line)
                         {
                             t = i;
                             break;
                         }
-                    }
-                    /*  }
-                      else
-                      {
-                          throw new Exception("wefwefwfe");
-                      }*/
+                    }      
                 }
                 else
                     t = -1;
 
-                //t = mainDict.dicts.FindIndex(x => x.word == line);
-
+           
                 if (t == -1)
                 {
                     DictWord dictWord = new DictWord();
@@ -636,8 +631,9 @@ namespace WpfApp1
                     dictWord.word = line;
                     dictWord.isMainWord = true;
                     dictWord.type = tokens[1].ToLower();
-                    mainDict.dicts.Add(dictWord);
-                   // mainDict.listWordRange[mainDict.listWordRange.Count - 1].endID = mainDict.dicts.Count;
+                    allWordDict.dictWords.Add(dictWord);
+                    mainDictionary.mainWords.Add(dictWord);
+                    
                     if (tokens.Length > 2)
                     {
                         for (int i = 2; i < tokens.Length; i++)
@@ -646,36 +642,22 @@ namespace WpfApp1
                                 continue;
 
                             t = -1;
-
-                            // if ((sstart != -1) && (eend != -1))
-                            // {                            
-
-                            for (int ki = sstart; ki < mainDict.dicts.Count; ki++)
+                            for (int ki = sstart; ki < allWordDict.dictWords.Count; ki++)
                             {
-                                if (mainDict.dicts[ki].word == tokens[i].ToLower())
+                                if (allWordDict.dictWords[ki].word == tokens[i].ToLower())
                                 {
                                     t = ki;
                                     break;
                                 }
                             }
-                            //}
-                            /*else
-                            {
-                                throw new Exception("wefwefwfe");
-                            }*/
-
-
-                            //t = mainDict.dicts.FindIndex(x => x.word == tokens[i].ToLower());
                             if (t == -1)
                             {
                                 DictWord dictWord1 = new DictWord();
                                 dictWord1.id = localCounter;
-                                dictWord1.isMainWord = false;
-                                //localCounter++;
+                                dictWord1.isMainWord = false;                                
                                 dictWord1.word = tokens[i].ToLower();
                                 dictWord1.type = tokens[1].ToLower();
-                                mainDict.dicts.Add(dictWord1);
-                              //  mainDict.listWordRange[mainDict.listWordRange.Count - 1].endID = mainDict.dicts.Count;
+                                allWordDict.dictWords.Add(dictWord1);                              
                             }
                         }
                     }
@@ -683,7 +665,7 @@ namespace WpfApp1
                 }
                 else
                 {
-                    DictWord dictWord = mainDict.dicts[t];
+                    DictWord dictWord = allWordDict.dictWords[t];
                     if (tokens.Length > 2)
                     {
                         for (int i = 2; i < tokens.Length; i++)
@@ -692,37 +674,22 @@ namespace WpfApp1
                                 continue;
 
                             t = -1;
-
-                            // if ((sstart != -1) && (eend != -1))
-                            // {                            
-
-                            for (int ki = sstart; ki < mainDict.dicts.Count; ki++)
+                            for (int ki = sstart; ki < allWordDict.dictWords.Count; ki++)
                             {
-                                if (mainDict.dicts[ki].word == tokens[i].ToLower())
+                                if (allWordDict.dictWords[ki].word == tokens[i].ToLower())
                                 {
                                     t = ki;
                                     break;
                                 }
                             }
-                            //}
-                            /*else
-                            {
-                                throw new Exception("wefwefwfe");
-                            }*/
-
-
-                            //t = mainDict.dicts.FindIndex(x => x.word == tokens[i].ToLower());
                             if (t == -1)
                             {
                                 DictWord dictWord1 = new DictWord();
                                 dictWord1.id = dictWord.id;
-                                dictWord1.isMainWord = false;
-                                //localCounter++;
+                                dictWord1.isMainWord = false;                                
                                 dictWord1.word = tokens[i].ToLower();
                                 dictWord1.type = tokens[1].ToLower();
-                                mainDict.dicts.Add(dictWord1);
-                               // mainDict.listWordRange[currentListRangeIndex].endID = mainDict.dicts.Count;
-                                //mainDict.listWordRange[currentListRangeIndex].wordRanges[currentLevel2ListRangeIndex].endID = mainDict.dicts.Count;
+                                allWordDict.dictWords.Add(dictWord1);
                             }
                         }
                     }
@@ -741,20 +708,53 @@ namespace WpfApp1
             // импортировать System.Runtime.Serialization.Formatters.Binary
             BinaryFormatter binFormat = new BinaryFormatter();
             // Сохранить объект в локальном файле.
-            using (Stream fStream = new FileStream("maindict.dat", FileMode.Create, FileAccess.Write, FileShare.None))
+            using (Stream fStream = new FileStream("allworddict.dat", FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                binFormat.Serialize(fStream, mainDict);
+                binFormat.Serialize(fStream, allWordDict);
             }
 
-            XmlSerializer xmlSerializer = new XmlSerializer(typeof(MainDict));
+            XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllDict));
+            
+            try
+            {
+                //Open the File
+                StreamWriter sw = new StreamWriter("allword.txt", true, Encoding.UTF8);
+
+                foreach (DictWord dictWord in allWordDict.dictWords)
+                {
+                    string temp = dictWord.word + ";" + dictWord.id + ";"+(dictWord.isMainWord?"1":"0")+";"+dictWord.type;
+                    sw.WriteLine(temp);
+                }
+
+                //close the file
+                sw.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: " + e.Message);
+            }
+            finally
+            {
+                Console.WriteLine("Executing finally block.");
+            }
 
             // получаем поток, куда будем записывать сериализованный объект
-            using (FileStream fs = new FileStream("maindict.xml", FileMode.OpenOrCreate))
+            /*using (FileStream fs = new FileStream("allworddict.xml", FileMode.OpenOrCreate))
             {
-                xmlSerializer.Serialize(fs, mainDict);
+                xmlSerializer.Serialize(fs, allWordDict);
 
                 
+            }*/
+
+            XmlSerializer xmlSerializer1 = new XmlSerializer(typeof(MainDict));
+
+            using (FileStream fs1 = new FileStream("mainworddict.xml", FileMode.OpenOrCreate))
+            {
+                xmlSerializer1.Serialize(fs1, mainDictionary);
+
             }
+
+
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
@@ -790,9 +790,9 @@ namespace WpfApp1
 
             BinaryFormatter binFormat = new BinaryFormatter();
 
-            using (Stream fStream = File.OpenRead("maindict.dat"))
+            using (Stream fStream = File.OpenRead("allworddict.dat"))
             {
-                loadedMyDict = (MainDict)binFormat.Deserialize(fStream);
+                allWordDict = (AllDict)binFormat.Deserialize(fStream);
             }
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
