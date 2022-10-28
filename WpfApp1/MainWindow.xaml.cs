@@ -326,10 +326,10 @@ namespace WpfApp1
             allWordDict = new AllDict();
             mainDictionary = new MainDict();
 
-           // AllDict mainDict = new AllDict();
+            // AllDict mainDict = new AllDict();
 
             ////                             t = myDict.tree.FindIndex(x => x.Letter == line.Substring(0, 1));
-         //   int cc = 0;
+            //   int cc = 0;
             int t;
             int u;
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
@@ -342,8 +342,8 @@ namespace WpfApp1
             allText = File.ReadAllLines(globalFile, Encoding.GetEncoding(1251));
 
             int sstart = 0;
-           // int currentListRangeIndex = 0;
-           // int currentLevel2ListRangeIndex = 0;
+            // int currentListRangeIndex = 0;
+            // int currentLevel2ListRangeIndex = 0;
 
             foreach (string line1 in allText)
             {
@@ -599,14 +599,14 @@ namespace WpfApp1
                 allWordDict.listWordRange[currentListRangeIndex].endID = allWordDict.dictWords.Count;
             }
 
-        }*/ 
+        }*/
                 #endregion
 
 
                 t = -1;
                 if (allWordDict.dictWords.Count >= 1)
                 {
-                   
+
                     sstart = allWordDict.dictWords.Count - 1000;
                     if (sstart < 0)
                         sstart = 0;
@@ -618,12 +618,12 @@ namespace WpfApp1
                             t = i;
                             break;
                         }
-                    }      
+                    }
                 }
                 else
                     t = -1;
 
-           
+
                 if (t == -1)
                 {
                     DictWord dictWord = new DictWord();
@@ -633,7 +633,7 @@ namespace WpfApp1
                     dictWord.type = tokens[1].ToLower();
                     allWordDict.dictWords.Add(dictWord);
                     mainDictionary.mainWords.Add(dictWord);
-                    
+
                     if (tokens.Length > 2)
                     {
                         for (int i = 2; i < tokens.Length; i++)
@@ -654,10 +654,10 @@ namespace WpfApp1
                             {
                                 DictWord dictWord1 = new DictWord();
                                 dictWord1.id = localCounter;
-                                dictWord1.isMainWord = false;                                
+                                dictWord1.isMainWord = false;
                                 dictWord1.word = tokens[i].ToLower();
                                 dictWord1.type = tokens[1].ToLower();
-                                allWordDict.dictWords.Add(dictWord1);                              
+                                allWordDict.dictWords.Add(dictWord1);
                             }
                         }
                     }
@@ -686,7 +686,7 @@ namespace WpfApp1
                             {
                                 DictWord dictWord1 = new DictWord();
                                 dictWord1.id = dictWord.id;
-                                dictWord1.isMainWord = false;                                
+                                dictWord1.isMainWord = false;
                                 dictWord1.word = tokens[i].ToLower();
                                 dictWord1.type = tokens[1].ToLower();
                                 allWordDict.dictWords.Add(dictWord1);
@@ -714,7 +714,7 @@ namespace WpfApp1
             }
 
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllDict));
-            
+
             try
             {
                 //Open the File
@@ -722,7 +722,7 @@ namespace WpfApp1
 
                 foreach (DictWord dictWord in allWordDict.dictWords)
                 {
-                    string temp = dictWord.word + ";" + dictWord.id + ";"+(dictWord.isMainWord?"1":"0")+";"+dictWord.type;
+                    string temp = dictWord.word + ";" + dictWord.id + ";" + (dictWord.isMainWord ? "1" : "0") + ";" + dictWord.type;
                     sw.WriteLine(temp);
                 }
 
@@ -805,7 +805,7 @@ namespace WpfApp1
         private void loadDictXML_Click(object sender, RoutedEventArgs e)
         {
             Thread t = new Thread(new ThreadStart(loadUserDict));
-            t.Start();            
+            t.Start();
         }
 
         private void testNet_Click(object sender, RoutedEventArgs e)
@@ -1022,6 +1022,48 @@ namespace WpfApp1
 
 
 
+        }
+
+        private void loadDictText_Click(object sender, RoutedEventArgs e)
+        {
+            string[] allText;
+            string[] tokens;
+            char[] chars = new char[3];
+            chars[0] = ';';
+
+            //chars[1] = '!';
+            //chars[2] = '?';
+
+            string tempStr;
+
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                if (allWordDict == null)
+                    allWordDict = new AllDict();
+                if (allWordDict.dictWords == null)
+                    allWordDict.dictWords = new List<DictWord>();
+
+                int cc = 0;
+                //allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding(1251));
+                allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding("utf-8"));
+                foreach (string line in allText)
+                {
+                    tempStr = "";
+                    
+                    tokens = line.Split(chars);
+                    int lenSents = tokens.Length;
+                    if (lenSents < 4)
+                        continue;
+                    DictWord dictWord = new DictWord();
+                    dictWord.word = tokens[0].Trim(); 
+                    dictWord.id = int.Parse(tokens[1].Trim());
+                    dictWord.isMainWord = tokens[2] == "1";
+                    dictWord.type = tokens[3].Trim();
+                    allWordDict.dictWords.Add(dictWord);    
+                }
+            }
+            int yyy = 1;
         }
     }
 }
