@@ -706,14 +706,14 @@ namespace WpfApp1
 
             // BinaryFormatter сохраняет данные в двоичном формате. Чтобы получить доступ к BinaryFormatter, понадобится
             // импортировать System.Runtime.Serialization.Formatters.Binary
-           /* BinaryFormatter binFormat = new BinaryFormatter();
-            // Сохранить объект в локальном файле.
-            using (Stream fStream = new FileStream("allworddict.dat", FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                binFormat.Serialize(fStream, allWordDict);
-            }*/
+            /* BinaryFormatter binFormat = new BinaryFormatter();
+             // Сохранить объект в локальном файле.
+             using (Stream fStream = new FileStream("allworddict.dat", FileMode.Create, FileAccess.Write, FileShare.None))
+             {
+                 binFormat.Serialize(fStream, allWordDict);
+             }*/
 
-//            XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllDict));
+            //            XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllDict));
 
             try
             {
@@ -1051,45 +1051,16 @@ namespace WpfApp1
 
         private void loadDictText_Click(object sender, RoutedEventArgs e)
         {
-            string[] allText;
-            string[] tokens;
-            char[] chars = new char[3];
-            chars[0] = ';';
-
-            //chars[1] = '!';
-            //chars[2] = '?';
-
-            string tempStr;
-
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
             {
-                if (allWordDict == null)
-                    allWordDict = new AllDict();
-                if (allWordDict.dictWords == null)
-                    allWordDict.dictWords = new List<DictWord>();
+                globalFile = openFileDialog.FileName;
+                Thread t = new Thread(new ThreadStart(LoadAndSortAllWordDict));
+                t.Start();
 
-                int cc = 0;
-                //allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding(1251));
-                allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding("utf-8"));
-                foreach (string line in allText)
-                {
-                    tempStr = "";
-                    
-                    tokens = line.Split(chars);
-                    int lenSents = tokens.Length;
-                    if (lenSents < 4)
-                        continue;
-                    DictWord dictWord = new DictWord();
-                    dictWord.word = tokens[0].Trim(); 
-                    dictWord.id = int.Parse(tokens[1].Trim());
-                    dictWord.isMainWord = tokens[2] == "1";
-                    dictWord.type = tokens[3].Trim();
-                    allWordDict.dictWords.Add(dictWord);    
-                }
             }
             int yyy = 1;
-            openFileDialog = new OpenFileDialog();
+            /*openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
             {
                 if (mainDictionary == null)
@@ -1115,10 +1086,100 @@ namespace WpfApp1
                     dictWord.type = tokens[3].Trim();
                     mainDictionary.mainWords.Add(dictWord);
                 }
-            }
+            }*/
             yyy = 2;
+
+
+
         }
 
+        public void LoadAndSortAllWordDict()
+        {
+            string[] allText;
+            string[] tokens;
+            char[] chars = new char[3];
+            chars[0] = ';';
+
+            //chars[1] = '!';
+            //chars[2] = '?';
+
+            string tempStr;
+
+            if (allWordDict == null)
+            {
+                allWordDict = new AllDict();
+            }
+            else
+            {
+
+            }
+            if (allWordDict.dictWords == null)
+                allWordDict.dictWords = new List<DictWord>();
+            else
+                allWordDict.dictWords.Clear();
+
+            if (allWordDict.listWordRange == null)
+                allWordDict.listWordRange = new List<WordRange>();
+            else
+                allWordDict.listWordRange.Clear();
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("Start loading dict "+DateTime.Now.ToString());
+                }
+                );
+
+
+            //SortedDictionary<string, DictWord> tempToSort =
+            // new SortedDictionary<string, DictWord>();
+            List<DictWord> list = new List<DictWord>();
+
+            int cc = 0;
+            //allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding(1251));
+            allText = File.ReadAllLines(globalFile, Encoding.GetEncoding("utf-8"));
+            int excepCount = 0;
+            foreach (string line in allText)
+            {
+                tempStr = "";
+
+                tokens = line.Split(chars);
+                int lenSents = tokens.Length;
+                if (lenSents < 4)
+                    continue;
+                DictWord dictWord = new DictWord();
+                dictWord.word = tokens[0].Trim();
+                dictWord.id = int.Parse(tokens[1].Trim());
+                dictWord.isMainWord = tokens[2] == "1";
+                dictWord.type = tokens[3].Trim();
+                try
+                {
+                    list.Add(dictWord);
+                }
+                catch (Exception ex)
+                {
+                    excepCount++;
+                }
+                //   allWordDict.dictWords.Add(dictWord);    
+            }
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("Start sorting dict " + DateTime.Now.ToString());
+                }
+                );
+
+            allWordDict.dictWords = list.OrderBy(x => x.word).ToList(); // ToList optional
+
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("end sorting dict " + DateTime.Now.ToString());
+                }
+                );
+
+
+            int yyy = 1;
+        }
         private void sortDict_Click(object sender, RoutedEventArgs e)
         {
 
