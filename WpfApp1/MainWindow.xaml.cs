@@ -706,14 +706,14 @@ namespace WpfApp1
 
             // BinaryFormatter сохраняет данные в двоичном формате. Чтобы получить доступ к BinaryFormatter, понадобится
             // импортировать System.Runtime.Serialization.Formatters.Binary
-            BinaryFormatter binFormat = new BinaryFormatter();
+           /* BinaryFormatter binFormat = new BinaryFormatter();
             // Сохранить объект в локальном файле.
             using (Stream fStream = new FileStream("allworddict.dat", FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 binFormat.Serialize(fStream, allWordDict);
-            }
+            }*/
 
-            XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllDict));
+//            XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllDict));
 
             try
             {
@@ -738,6 +738,31 @@ namespace WpfApp1
                 Console.WriteLine("Executing finally block.");
             }
 
+
+            try
+            {
+                //Open the File
+                StreamWriter sw = new StreamWriter("mainword.txt", true, Encoding.UTF8);
+
+                foreach (DictWord dictWord in mainDictionary.mainWords)
+                {
+                    string temp = dictWord.word + ";" + dictWord.id + ";" + (dictWord.isMainWord ? "1" : "0") + ";" + dictWord.type;
+                    sw.WriteLine(temp);
+                }
+
+                //close the file
+                sw.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: " + e.Message);
+            }
+            finally
+            {
+                Console.WriteLine("Executing finally block.");
+            }
+
+
             // получаем поток, куда будем записывать сериализованный объект
             /*using (FileStream fs = new FileStream("allworddict.xml", FileMode.OpenOrCreate))
             {
@@ -746,13 +771,13 @@ namespace WpfApp1
                 
             }*/
 
-            XmlSerializer xmlSerializer1 = new XmlSerializer(typeof(MainDict));
+            /* XmlSerializer xmlSerializer1 = new XmlSerializer(typeof(MainDict));
 
-            using (FileStream fs1 = new FileStream("mainworddict.xml", FileMode.OpenOrCreate))
-            {
-                xmlSerializer1.Serialize(fs1, mainDictionary);
+             using (FileStream fs1 = new FileStream("mainworddict.xml", FileMode.OpenOrCreate))
+             {
+                 xmlSerializer1.Serialize(fs1, mainDictionary);
 
-            }
+             }*/
 
 
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
@@ -1064,6 +1089,39 @@ namespace WpfApp1
                 }
             }
             int yyy = 1;
+            openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                if (mainDictionary == null)
+                    mainDictionary = new MainDict();
+                if (mainDictionary.mainWords == null)
+                    mainDictionary.mainWords = new List<DictWord>();
+
+                int cc = 0;
+                //allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding(1251));
+                allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding("utf-8"));
+                foreach (string line in allText)
+                {
+                    tempStr = "";
+
+                    tokens = line.Split(chars);
+                    int lenSents = tokens.Length;
+                    if (lenSents < 4)
+                        continue;
+                    DictWord dictWord = new DictWord();
+                    dictWord.word = tokens[0].Trim();
+                    dictWord.id = int.Parse(tokens[1].Trim());
+                    dictWord.isMainWord = tokens[2] == "1";
+                    dictWord.type = tokens[3].Trim();
+                    mainDictionary.mainWords.Add(dictWord);
+                }
+            }
+            yyy = 2;
+        }
+
+        private void sortDict_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

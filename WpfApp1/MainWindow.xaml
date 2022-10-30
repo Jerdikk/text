@@ -28,6 +28,7 @@
             <Button x:Name="loadDict" Content="Convert dict" Margin="5" MinWidth="80" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="loadDict_Click"/>
             <Button x:Name="loadDictXML" Content="Load dict from serialize" Margin="5" MinWidth="80" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="loadDictXML_Click" />
             <Button x:Name="loadDictText" Content="Load dict from text" Margin="5" MinWidth="80" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="loadDictText_Click" />
+            <Button x:Name="sortDict" Content="Sort dicts" Margin="5" MinWidth="80" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="sortDict_Click" />
         </StackPanel>
         <DockPanel Grid.Column="1" Grid.Row="0">
             <Button x:Name="testNet" VerticalAlignment="Bottom" HorizontalAlignment="Left" Content="Test on MNIST dataset" Click="testNet_Click"/>
