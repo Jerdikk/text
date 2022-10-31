@@ -96,6 +96,17 @@ namespace WpfApp1
             dictWords = new List<DictWord>();
         }
     }
+
+    public class ListDictWords
+    {
+        public List<DictWord> dictWords;
+
+        public ListDictWords()
+        {
+            dictWords = new List<DictWord>();
+        }
+    }
+
     public class MyDataContext
     {
 
@@ -813,12 +824,12 @@ namespace WpfApp1
                     }
                 );
 
-            BinaryFormatter binFormat = new BinaryFormatter();
+            /*  BinaryFormatter binFormat = new BinaryFormatter();
 
-            using (Stream fStream = File.OpenRead("allworddict.dat"))
-            {
-                allWordDict = (AllDict)binFormat.Deserialize(fStream);
-            }
+              using (Stream fStream = File.OpenRead("allworddict.dat"))
+              {
+                  allWordDict = (AllDict)binFormat.Deserialize(fStream);
+              }*/
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
@@ -1125,14 +1136,14 @@ namespace WpfApp1
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
-                    myDataContext.strings.Add("Start loading dict "+DateTime.Now.ToString());
+                    myDataContext.strings.Add("Start loading dict " + DateTime.Now.ToString());
                 }
                 );
 
 
             //SortedDictionary<string, DictWord> tempToSort =
             // new SortedDictionary<string, DictWord>();
-            List<DictWord> list = new List<DictWord>();
+            List<DictWord> dictWordsList = new List<DictWord>();
 
             int cc = 0;
             //allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding(1251));
@@ -1153,7 +1164,7 @@ namespace WpfApp1
                 dictWord.type = tokens[3].Trim();
                 try
                 {
-                    list.Add(dictWord);
+                    dictWordsList.Add(dictWord);
                 }
                 catch (Exception ex)
                 {
@@ -1167,8 +1178,26 @@ namespace WpfApp1
                     myDataContext.strings.Add("Start sorting dict " + DateTime.Now.ToString());
                 }
                 );
+            allText = null;
 
-            allWordDict.dictWords = list.OrderBy(x => x.word).ToList(); // ToList optional
+            List<ListDictWords> listDictWords = new List<ListDictWords>();
+            for (int u = 0; u < 33; u++)
+            {
+                listDictWords.Add(new ListDictWords());
+            }
+
+            foreach (DictWord dictWord1 in dictWordsList)
+            {
+                string temp = dictWord1.word.Substring(0, 1);
+                if (temp == "ё")
+                    temp = "е";
+                char[] tt = temp.ToCharArray();
+                int b = (int)tt[0];
+                b -= 1072;
+                if ((b < 0) || (b > 32))
+                    continue;//throw new Exception();
+                listDictWords[b].dictWords.Add(dictWord1);
+            }
 
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
@@ -1177,8 +1206,38 @@ namespace WpfApp1
                 }
                 );
 
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("start writing dict " + DateTime.Now.ToString());
+                }
+                );
+            File.Delete(globalFile);
+            try
+            {
+                //Open the File
+                StreamWriter sw = new StreamWriter(globalFile, true, Encoding.UTF8);
 
-            int yyy = 1;
+                foreach (ListDictWords listDictWords1 in listDictWords)
+                    foreach (DictWord dictWord in listDictWords1.dictWords)
+                    {
+                        string temp = dictWord.word + ";" + dictWord.id + ";" + (dictWord.isMainWord ? "1" : "0") + ";" + dictWord.type;
+                        sw.WriteLine(temp);
+                    }
+
+                //close the file
+                sw.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: " + e.Message);
+            }
+            finally
+            {
+                Console.WriteLine("Executing finally block.");
+            }
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,(ThreadStart)delegate () { myDataContext.strings.Add("end writing dict " + DateTime.Now.ToString()); } );
+
         }
         private void sortDict_Click(object sender, RoutedEventArgs e)
         {
