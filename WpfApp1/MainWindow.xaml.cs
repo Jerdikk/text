@@ -101,6 +101,8 @@ namespace WpfApp1
     {
         public List<DictWord> dictWords;
 
+        public List<ListDictWords> listWords;
+
         public ListDictWords()
         {
             dictWords = new List<DictWord>();
@@ -229,7 +231,7 @@ namespace WpfApp1
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
           (ThreadStart)delegate ()
           {
-              myDataContext.strings.Add("start parsing sents!"+DateTime.Now.ToString());
+              myDataContext.strings.Add("start parsing sents!" + DateTime.Now.ToString());
           }
           );
             foreach (string sentense in sentList)
@@ -394,7 +396,7 @@ namespace WpfApp1
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
               (ThreadStart)delegate ()
               {
-                  myDataContext.strings.Add("Start!");
+                  myDataContext.strings.Add("Start!" + DateTime.Now.ToString());
               }
               );
 
@@ -406,12 +408,12 @@ namespace WpfApp1
 
             foreach (string line1 in allText)
             {
-                if (localCounter % 100 == 0)
+                if (localCounter % 10000 == 0)
                 {
                     this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                       (ThreadStart)delegate ()
                       {
-                          myDataContext.strings.Add(localCounter.ToString());
+                          myDataContext.strings.Add(localCounter.ToString()+" "+ DateTime.Now.ToString());
                       }
                       );
 
@@ -759,7 +761,7 @@ namespace WpfApp1
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
-                    myDataContext.strings.Add("end!");
+                    myDataContext.strings.Add("end!" + DateTime.Now.ToString());
                 }
                 );
 
@@ -1222,18 +1224,41 @@ namespace WpfApp1
             {
                 listDictWords.Add(new ListDictWords());
             }
+            foreach (ListDictWords listDictWords2 in listDictWords)
+            {
+                listDictWords2.listWords = new List<ListDictWords>();
+                for (int u = 0; u < 33; u++)
+                {
+                    listDictWords2.listWords.Add(new ListDictWords());
+                }
+
+            }
 
             foreach (DictWord dictWord1 in dictWordsList)
             {
                 string temp = dictWord1.word.Substring(0, 1);
-                if (temp == "ё")
-                    temp = "е";
                 char[] tt = temp.ToCharArray();
                 int b = (int)tt[0];
                 b -= 1072;
                 if ((b < 0) || (b > 32))
                     continue;//throw new Exception();
-                listDictWords[b].dictWords.Add(dictWord1);
+
+                int len = dictWord1.word.Length;
+                if (len > 0)
+                {
+                    if (len == 1)
+                        listDictWords[b].dictWords.Add(dictWord1);
+                    else
+                    {
+                        temp = dictWord1.word.Substring(1, 1);
+                        tt = temp.ToCharArray();
+                        int c = (int)tt[0];
+                        c -= 1072;
+                        if ((c < 0) || (c > 32))
+                            continue;//throw new Exception();
+                        listDictWords[b].listWords[c].dictWords.Add(dictWord1);
+                    }
+                }
             }
 
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
@@ -1257,12 +1282,21 @@ namespace WpfApp1
                 StreamWriter sw = new StreamWriter(globalFile, true, Encoding.UTF8);
 
                 foreach (ListDictWords listDictWords1 in listDictWords)
+                {
                     foreach (DictWord dictWord in listDictWords1.dictWords)
                     {
                         string temp = dictWord.word + ";" + dictWord.id + ";" + (dictWord.isMainWord ? "1" : "0") + ";" + dictWord.type;
                         sw.WriteLine(temp);
                     }
-
+                    foreach (ListDictWords listDictWords22 in listDictWords1.listWords)
+                    {
+                        foreach (DictWord dictWord in listDictWords22.dictWords)
+                        {
+                            string temp = dictWord.word + ";" + dictWord.id + ";" + (dictWord.isMainWord ? "1" : "0") + ";" + dictWord.type;
+                            sw.WriteLine(temp);
+                        }
+                    }
+                }
                 //close the file
                 sw.Close();
             }
