@@ -310,6 +310,13 @@ namespace WpfApp1
                     tokenList[j] += ";";
                     tokenList[j] += countToken[j].ToString();
                 }
+                if (File.Exists("2.txt"))
+                    File.Delete("2.txt");
+                if (File.Exists("4.txt"))
+                    File.Delete("4.txt");
+                if (File.Exists("3.csv"))
+                    File.Delete("3.csv");
+
                 File.WriteAllLines("2.txt", sentList);
                 File.WriteAllLines("4.txt", sentTokenListFirFile);
                 File.WriteAllLines("3.csv", tokenList);
@@ -725,6 +732,8 @@ namespace WpfApp1
              }*/
 
             //            XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllDict));
+            if (File.Exists("allword.txt"))
+                File.Delete("allword.txt");
 
             try
             {
@@ -749,6 +758,8 @@ namespace WpfApp1
                 Console.WriteLine("Executing finally block.");
             }
 
+            if (File.Exists("mainword.txt"))
+                File.Delete("mainword.txt");
 
             try
             {
@@ -1116,23 +1127,8 @@ namespace WpfApp1
 
             string tempStr;
 
-            if (allWordDict == null)
-            {
-                allWordDict = new AllDict();
-            }
-            else
-            {
 
-            }
-            if (allWordDict.dictWords == null)
-                allWordDict.dictWords = new List<DictWord>();
-            else
-                allWordDict.dictWords.Clear();
 
-            if (allWordDict.listWordRange == null)
-                allWordDict.listWordRange = new List<WordRange>();
-            else
-                allWordDict.listWordRange.Clear();
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
@@ -1212,7 +1208,8 @@ namespace WpfApp1
                     myDataContext.strings.Add("start writing dict " + DateTime.Now.ToString());
                 }
                 );
-            File.Delete(globalFile);
+            if (File.Exists(globalFile))
+                File.Delete(globalFile);
             try
             {
                 //Open the File
@@ -1236,12 +1233,236 @@ namespace WpfApp1
             {
                 Console.WriteLine("Executing finally block.");
             }
-            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,(ThreadStart)delegate () { myDataContext.strings.Add("end writing dict " + DateTime.Now.ToString()); } );
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal, (ThreadStart)delegate () { myDataContext.strings.Add("end writing dict " + DateTime.Now.ToString()); });
 
         }
-        private void sortDict_Click(object sender, RoutedEventArgs e)
+
+        private void indexDict_Click(object sender, RoutedEventArgs e)
         {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                globalFile = openFileDialog.FileName;
+                Thread t = new Thread(new ThreadStart(IndexDict));
+                t.Start();
+
+            }
+            int yyy = 1;
+        }
+
+        public void IndexDict()
+        {
+            if (allWordDict == null)
+            {
+                allWordDict = new AllDict();
+            }
+            else
+            {
+
+            }
+            if (allWordDict.dictWords == null)
+                allWordDict.dictWords = new List<DictWord>();
+            else
+                allWordDict.dictWords.Clear();
+
+            if (allWordDict.listWordRange == null)
+                allWordDict.listWordRange = new List<WordRange>();
+            else
+                allWordDict.listWordRange.Clear();
+
+            string[] allText;
+            string[] tokens;
+            char[] chars = new char[3];
+            chars[0] = ';';
+
+            string tempStr;
+            string currentStr;
+            string currentStr2;
+
+
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("Start loading dict " + DateTime.Now.ToString());
+                }
+                );
+
+            // List<DictWord> dictWordsList = new List<DictWord>();
+
+            int cc = 0;
+            allText = File.ReadAllLines(globalFile, Encoding.GetEncoding("utf-8"));
+            int excepCount = 0;
+            foreach (string line in allText)
+            {
+                tempStr = "";
+
+                tokens = line.Split(chars);
+                int lenSents = tokens.Length;
+                if (lenSents < 4)
+                    continue;
+                DictWord dictWord = new DictWord();
+                dictWord.word = tokens[0].Trim();
+                dictWord.id = int.Parse(tokens[1].Trim());
+                dictWord.isMainWord = tokens[2] == "1";
+                dictWord.type = tokens[3].Trim();
+                try
+                {
+                    allWordDict.dictWords.Add(dictWord);
+                }
+                catch (Exception ex)
+                {
+                    excepCount++;
+                }
+            }
+
+            if (allWordDict.listWordRange == null)
+                allWordDict.listWordRange = new List<WordRange>();
+            else
+                allWordDict.listWordRange.Clear();
+
+            currentStr = "";
+            currentStr2 = "";
+            int counter = 0;
+            int len = 0;
+            WordRange wordRange = null;
+            WordRange wordRange1 = null;
+            foreach (DictWord dictWord in allWordDict.dictWords)
+            {
+                tempStr = dictWord.word.Substring(0, 1);
+                len = dictWord.word.Length;
+                if (tempStr != currentStr)
+                {
+                    if (allWordDict.listWordRange != null)
+                    {
+                        bool found = false;
+                        foreach (WordRange wordRange2 in allWordDict.listWordRange)
+                        {
+                            if (wordRange2.letter == tempStr)
+                            {
+                                found = true;
+                                wordRange2.endID = counter;
+                                wordRange = wordRange2;
+                                currentStr = tempStr;
+                                if (len > 1)
+                                {
+                                    tempStr = dictWord.word.Substring(1, 1);
+                                    bool found1 = false;
+                                    if (wordRange.wordRanges != null)
+                                        foreach (WordRange wordRange3 in wordRange.wordRanges)
+                                        {
+                                            if (wordRange3.letter == tempStr)
+                                            {
+                                                currentStr2 = tempStr;
+                                                found1 = true;
+                                                wordRange3.endID = counter;
+                                                wordRange1 = wordRange3;
+                                                break;
+                                            }
+                                        }
+                                    if (!found1)
+                                    {
+                                        currentStr2 = tempStr;
+                                        wordRange1 = new WordRange();
+                                        wordRange1.letter = tempStr;
+                                        wordRange1.startID = counter;
+                                        wordRange1.endID = counter;
+                                        if (wordRange.wordRanges == null)
+                                            wordRange.wordRanges = new List<WordRange>();
+                                        wordRange.wordRanges.Add(wordRange1);
+                                    }
+                                    //}
+
+                                }
+                                break;
+                            }
+                        }
+                        if (!found)
+                        {
+                            currentStr = tempStr;
+                            wordRange = new WordRange();
+                            wordRange.letter = tempStr;
+                            wordRange.startID = counter;
+                            wordRange.endID = counter;
+                            if (len > 1)
+                            {
+                                tempStr = dictWord.word.Substring(1, 1);
+                                currentStr2 = tempStr;
+                                wordRange1 = new WordRange();
+                                wordRange1.letter = tempStr;
+                                wordRange1.startID = counter;
+                                wordRange1.endID = counter;
+                                wordRange.wordRanges = new List<WordRange>();
+                                wordRange.wordRanges.Add(wordRange1);
+                            }
+
+                            allWordDict.listWordRange.Add(wordRange);
+
+                        }
+                    }
+                    else
+                    {
+
+                    }
+                }
+                else //if (tempStr!=currentStr)
+                {
+                    wordRange.endID = counter;
+                    if (len > 1)
+                    {
+                        tempStr = dictWord.word.Substring(1, 1);
+                        if (tempStr == currentStr2)
+                        {
+                            wordRange1.endID = counter;
+                        }
+                        else
+                        {
+                            currentStr2 = tempStr;
+                            bool found = false;
+                            if (wordRange.wordRanges != null)
+                                foreach (WordRange wordRange2 in wordRange.wordRanges)
+                                {
+                                    if (wordRange2.letter == tempStr)
+                                    {
+                                        found = true;
+                                        currentStr2 = tempStr;
+                                        wordRange2.endID = counter;
+                                        wordRange1 = wordRange2;
+                                        break;
+                                    }
+                                }
+                            if (!found)
+                            {
+                                currentStr2 = tempStr;
+                                wordRange1 = new WordRange();
+                                wordRange1.letter = tempStr;
+                                wordRange1.startID = counter;
+                                wordRange1.endID = counter;
+                                if (wordRange.wordRanges == null)
+                                    wordRange.wordRanges = new List<WordRange>();
+                                wordRange.wordRanges.Add(wordRange1);
+
+                            }
+                        }
+                    }
+                    else//if (len>1)
+                    {
+
+                    }
+
+                }
+                counter++;
+            }
+
+
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (ThreadStart)delegate ()
+                {
+                    myDataContext.strings.Add("Start sorting dict " + DateTime.Now.ToString());
+                }
+                );
+            allText = null;
 
         }
+
     }
 }
