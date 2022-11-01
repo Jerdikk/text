@@ -163,7 +163,7 @@ namespace WpfApp1
             }
         }
 
-        private void load_Click(object sender, RoutedEventArgs e)
+        public void loadText()
         {
             string[] allText;
             string[] tokens;
@@ -171,11 +171,14 @@ namespace WpfApp1
             string tempLine = "";
             string tempStr = "";
 
-            char[] chars = new char[3];
+            char[] chars = new char[5];
             chars[0] = '.';
 
             chars[1] = '!';
             chars[2] = '?';
+            chars[3] = '(';
+            chars[4] = ')';
+
 
             List<string> sentList = new List<string>();
             List<string> tokenList = new List<string>();
@@ -183,150 +186,182 @@ namespace WpfApp1
             List<string> sentTokenListFirFile = new List<string>();
             List<int> countToken = new List<int>();
             List<int> countSentToken = new List<int>();
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
+
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+          (ThreadStart)delegate ()
+          {
+              myDataContext.strings.Add("start loading text!" + DateTime.Now.ToString());
+          }
+          );
+
+            int cc = 0;
+            //allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding(1251));
+            allText = File.ReadAllLines(globalFile, Encoding.GetEncoding("utf-8"));
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+          (ThreadStart)delegate ()
+          {
+              myDataContext.strings.Add("start loading sentlist!" + DateTime.Now.ToString());
+          }
+          );
+            foreach (string line in allText)
             {
-                int cc = 0;
-                //allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding(1251));
-                allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding("utf-8"));
-                foreach (string line in allText)
+                tempStr = "";
+                tempLine += line;
+                tokens = tempLine.Split(chars);
+                int lenSents = tokens.Length;
+                if (lenSents > 1)
                 {
-                    tempStr = "";
-                    tempLine += line;
-                    tokens = tempLine.Split(chars);
-                    int lenSents = tokens.Length;
-                    if (lenSents > 1)
+                    for (int i = 0; i < (lenSents - 1); i++)
                     {
-                        for (int i = 0; i < (lenSents - 1); i++)
-                        {
-                            tempStr = tokens[i].Replace("—", "");
-                            tempStr = tempStr.Replace(",", "");
-                            tempStr = tempStr.Replace("…", "");
-                            tempStr = tempStr.Replace(";", "");
-                            tempStr = tempStr.Replace(":", "");
-                            tempStr = ChangeUTF8Space(tempStr);
-                            tempStr = tempStr.ToLower();
-                            sentList.Add(tempStr);
-                        }
-                        tempLine = tokens[lenSents - 1];
+                        tempStr = tokens[i].Replace("—", "");
+                        tempStr = tempStr.Replace(",", "");
+                        tempStr = tempStr.Replace("…", "");
+                        tempStr = tempStr.Replace(";", "");
+                        tempStr = tempStr.Replace(":", "");
+                        tempStr = ChangeUTF8Space(tempStr);
+                        tempStr = tempStr.ToLower();
+                        sentList.Add(tempStr);
                     }
+                    tempLine = tokens[lenSents - 1];
                 }
-                sentList.Add(tempLine);
-
-                foreach (string sentense in sentList)
+            }
+            sentList.Add(tempLine);
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+          (ThreadStart)delegate ()
+          {
+              myDataContext.strings.Add("start parsing sents!"+DateTime.Now.ToString());
+          }
+          );
+            foreach (string sentense in sentList)
+            {
+                sentTokenList = new List<string>();
+                countSentToken = new List<int>();
+                tokens = sentense.Split(' ');
+                foreach (string token in tokens)
                 {
-                    sentTokenList = new List<string>();
-                    countSentToken = new List<int>();
-                    tokens = sentense.Split(' ');
-                    foreach (string token in tokens)
+                    string tempTok = token.Trim();
+                    if (tempTok.Length > 0)
                     {
-                        string tempTok = token.Trim();
-                        if (tempTok.Length > 0)
+
+                        tokenList.Add(tempTok);
+                        sentTokenList.Add(tempTok);
+
+                        bool found1 = false;
+                        foreach (WordRange wordRange in allWordDict.listWordRange)
                         {
-
-                            tokenList.Add(tempTok);
-                            sentTokenList.Add(tempTok);
-
-                            bool found1 = false;
-                            foreach (WordRange wordRange in allWordDict.listWordRange)
+                            if (wordRange.letter == tempTok.Substring(0, 1))
                             {
-                                if (wordRange.letter == tempTok.Substring(0, 1))
+                                if (tempTok.Length > 1)
                                 {
-                                    if (tempTok.Length > 1)
+                                    if (wordRange.wordRanges.Count > 0)
                                     {
-                                        if (wordRange.wordRanges.Count > 0)
+                                        foreach (WordRange wordRange1 in wordRange.wordRanges)
                                         {
-                                            foreach (WordRange wordRange1 in wordRange.wordRanges)
+                                            if (wordRange1.letter == tempTok.Substring(1, 1))
                                             {
-                                                if (wordRange1.letter == tempTok.Substring(1, 1))
+                                                bool found = false;
+                                                for (int i = wordRange1.startID; i <= wordRange1.endID; i++)
                                                 {
-                                                    bool found = false;
-                                                    for (int i = wordRange1.startID; i <= wordRange1.endID; i++)
+                                                    if (allWordDict.dictWords[i].word == tempTok)
                                                     {
-                                                        if (allWordDict.dictWords[i].word == tempTok)
-                                                        {
-                                                            countToken.Add(i);
-                                                            countSentToken.Add(i);
-                                                            found = true;
-                                                            found1 = true;
-                                                            break;
-                                                        }
-                                                    }
-                                                    if (found)
+                                                        countToken.Add(i);
+                                                        countSentToken.Add(i);
+                                                        found = true;
+                                                        found1 = true;
                                                         break;
+                                                    }
                                                 }
-                                            }
-                                            if (found1)
-                                                break;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        for (int i = wordRange.startID; i <= wordRange.endID; i++)
-                                        {
-                                            if (allWordDict.dictWords[i].word == tempTok)
-                                            {
-                                                countToken.Add(i);
-                                                countSentToken.Add(i);
-                                                found1 = true;
-                                                break;
+                                                if (found)
+                                                    break;
                                             }
                                         }
                                         if (found1)
                                             break;
-
                                     }
                                 }
+                                else
+                                {
+                                    for (int i = wordRange.startID; i <= wordRange.endID; i++)
+                                    {
+                                        if (allWordDict.dictWords[i].word == tempTok)
+                                        {
+                                            countToken.Add(i);
+                                            countSentToken.Add(i);
+                                            found1 = true;
+                                            break;
+                                        }
+                                    }
+                                    if (found1)
+                                        break;
+
+                                }
                             }
-                            if (!found1)
-                            {
-                                countToken.Add(-1);
-                                countSentToken.Add(-1);
-                            }
-                            /*
-                            int t = tokenList.FindIndex(x => x == token);
-                            if (t == -1)
-                            {
-                                tokenList.Add(token.Trim());
-                                countToken.Add(1);
-                            }
-                            else
-                                countToken[t] += 1;*/
                         }
-
+                        if (!found1)
+                        {
+                            countToken.Add(-1);
+                            countSentToken.Add(-1);
+                        }
+                        /*
+                        int t = tokenList.FindIndex(x => x == token);
+                        if (t == -1)
+                        {
+                            tokenList.Add(token.Trim());
+                            countToken.Add(1);
+                        }
+                        else
+                            countToken[t] += 1;*/
                     }
-                    string hh = "";
-                    for (int j = 0; j < countSentToken.Count; j++)
-                    {
-                        sentTokenList[j] += ";";
-                        sentTokenList[j] += countSentToken[j].ToString();
-                        hh += sentTokenList[j];
-                    }
-                    sentTokenListFirFile.Add(hh);
 
                 }
-                List<string> strings = new List<string>();
-                for (int j = 0; j < countToken.Count; j++)
+                string hh = "";
+                for (int j = 0; j < countSentToken.Count; j++)
                 {
-                    if (countToken[j] < 0)
-                    {
-                        string tttt = tokenList[j];
-                        tttt += ";";
-                        tttt += countToken[j].ToString();
-                        strings.Add(tttt);
-                    }
+                    sentTokenList[j] += ";";
+                    sentTokenList[j] += countSentToken[j].ToString();
+                    hh += sentTokenList[j];
                 }
-                if (File.Exists("2.txt"))
-                    File.Delete("2.txt");
-                if (File.Exists("4.txt"))
-                    File.Delete("4.txt");
-                if (File.Exists("3.csv"))
-                    File.Delete("3.csv");
+                sentTokenListFirFile.Add(hh);
 
-                File.WriteAllLines("2.txt", sentList);
-                File.WriteAllLines("4.txt", sentTokenListFirFile);
-                File.WriteAllLines("3.csv", strings);
-                MessageBox.Show("ВСЕ!");
+            }
+            List<string> strings = new List<string>();
+            for (int j = 0; j < countToken.Count; j++)
+            {
+                if (countToken[j] < 0)
+                {
+                    string tttt = tokenList[j];
+                    tttt += ";";
+                    tttt += countToken[j].ToString();
+                    strings.Add(tttt);
+                }
+            }
+            if (File.Exists("2.txt"))
+                File.Delete("2.txt");
+            if (File.Exists("4.txt"))
+                File.Delete("4.txt");
+            if (File.Exists("3.csv"))
+                File.Delete("3.csv");
+
+            File.WriteAllLines("2.txt", sentList);
+            File.WriteAllLines("4.txt", sentTokenListFirFile);
+            File.WriteAllLines("3.csv", strings);
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+          (ThreadStart)delegate ()
+          {
+              myDataContext.strings.Add("end loading text!" + DateTime.Now.ToString());
+          }
+          );
+        }
+
+        private void load_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                globalFile = openFileDialog.FileName;
+                Thread t = new Thread(new ThreadStart(loadText));
+                t.Start();
+                //MessageBox.Show("ВСЕ!");
             }
         }
 
@@ -837,7 +872,7 @@ namespace WpfApp1
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                     {
-                        myDataContext.strings.Add("start loading dict!");
+                        myDataContext.strings.Add("start loading dict!" + DateTime.Now.ToString());
                     }
                 );
 
@@ -850,7 +885,7 @@ namespace WpfApp1
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
-                    myDataContext.strings.Add("end loading dict!");
+                    myDataContext.strings.Add("end loading dict!" + DateTime.Now.ToString());
                 }
                 );
         }
@@ -874,7 +909,7 @@ namespace WpfApp1
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
-                    myDataContext.strings.Add("Start!");
+                    myDataContext.strings.Add("Start!" + DateTime.Now.ToString());
                 }
                 );
 
@@ -893,7 +928,7 @@ namespace WpfApp1
                         this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                              (ThreadStart)delegate ()
                                 {
-                                    myDataContext.strings.Add("Start to train dataset!");
+                                    myDataContext.strings.Add("Start to train dataset!" + DateTime.Now.ToString());
                                 }
                              );
 
