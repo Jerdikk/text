@@ -305,10 +305,16 @@ namespace WpfApp1
                     sentTokenListFirFile.Add(hh);
 
                 }
+                List<string> strings = new List<string>();
                 for (int j = 0; j < countToken.Count; j++)
                 {
-                    tokenList[j] += ";";
-                    tokenList[j] += countToken[j].ToString();
+                    if (countToken[j] < 0)
+                    {
+                        string tttt = tokenList[j];
+                        tttt += ";";
+                        tttt += countToken[j].ToString();
+                        strings.Add(tttt);
+                    }
                 }
                 if (File.Exists("2.txt"))
                     File.Delete("2.txt");
@@ -319,7 +325,7 @@ namespace WpfApp1
 
                 File.WriteAllLines("2.txt", sentList);
                 File.WriteAllLines("4.txt", sentTokenListFirFile);
-                File.WriteAllLines("3.csv", tokenList);
+                File.WriteAllLines("3.csv", strings);
                 MessageBox.Show("ВСЕ!");
             }
         }
@@ -1315,6 +1321,16 @@ namespace WpfApp1
                 }
             }
 
+            allText = null;
+
+
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+    (ThreadStart)delegate ()
+    {
+        myDataContext.strings.Add("Start indexing dict " + DateTime.Now.ToString());
+    }
+    );
+
             if (allWordDict.listWordRange == null)
                 allWordDict.listWordRange = new List<WordRange>();
             else
@@ -1457,7 +1473,7 @@ namespace WpfApp1
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 (ThreadStart)delegate ()
                 {
-                    myDataContext.strings.Add("Start sorting dict " + DateTime.Now.ToString());
+                    myDataContext.strings.Add("End indexing dict " + DateTime.Now.ToString());
                 }
                 );
             allText = null;
