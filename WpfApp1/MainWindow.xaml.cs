@@ -23,6 +23,17 @@ using System.Xml.Serialization;
 
 namespace WpfApp1
 {
+
+    public class SentenceIDs
+    {
+       public List<int> ids = new List<int>();
+    }
+
+    public class TextWithSents
+    {
+        public List<SentenceIDs> sentenceIDs = new List<SentenceIDs>();
+    }
+
     [Serializable]
     public class WordRange
     {
@@ -187,7 +198,10 @@ namespace WpfApp1
             List<string> sentTokenList = new List<string>();
             List<string> sentTokenListFirFile = new List<string>();
             List<int> countToken = new List<int>();
+            List<int> listIDToken = new List<int>();
             List<int> countSentToken = new List<int>();
+
+            TextWithSents textWithSents = new TextWithSents();
 
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
           (ThreadStart)delegate ()
@@ -236,6 +250,9 @@ namespace WpfApp1
           );
             foreach (string sentense in sentList)
             {
+                SentenceIDs sentenceIDs = new SentenceIDs();
+                sentenceIDs.ids = new List<int>();
+                
                 sentTokenList = new List<string>();
                 countSentToken = new List<int>();
                 tokens = sentense.Split(' ');
@@ -267,6 +284,8 @@ namespace WpfApp1
                                                     if (allWordDict.dictWords[i].word == tempTok)
                                                     {
                                                         countToken.Add(i);
+                                                        listIDToken.Add(allWordDict.dictWords[i].id);
+                                                        sentenceIDs.ids.Add(allWordDict.dictWords[i].id);
                                                         countSentToken.Add(i);
                                                         found = true;
                                                         found1 = true;
@@ -288,6 +307,8 @@ namespace WpfApp1
                                         if (allWordDict.dictWords[i].word == tempTok)
                                         {
                                             countToken.Add(i);
+                                            listIDToken.Add(allWordDict.dictWords[i].id);
+                                            sentenceIDs.ids.Add(allWordDict.dictWords[i].id);
                                             countSentToken.Add(i);
                                             found1 = true;
                                             break;
@@ -302,6 +323,7 @@ namespace WpfApp1
                         if (!found1)
                         {
                             countToken.Add(-1);
+                            listIDToken.Add(-1);
                             countSentToken.Add(-1);
                         }
                         /*
@@ -324,9 +346,32 @@ namespace WpfApp1
                     hh += sentTokenList[j];
                 }
                 sentTokenListFirFile.Add(hh);
-
+                if (sentenceIDs.ids.Count>0)
+                    textWithSents.sentenceIDs.Add(sentenceIDs);
             }
             List<string> strings = new List<string>();
+            List<int> indexes = new List<int>();
+
+            bool find;
+
+            for (int j = 0; j < listIDToken.Count; j++)
+            {
+                if (listIDToken[j] >= 0)
+                {
+                    find = false;
+                    for (int k = 0; k < indexes.Count; k++)
+                    {
+                        if (indexes[k] == listIDToken[j])
+                        {
+                            find = true;
+                            break;
+                        }
+                    }
+                    if (!find)
+                        indexes.Add(listIDToken[j]);
+                }
+            }
+
             for (int j = 0; j < countToken.Count; j++)
             {
                 if (countToken[j] < 0)
@@ -413,7 +458,7 @@ namespace WpfApp1
                     this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                       (ThreadStart)delegate ()
                       {
-                          myDataContext.strings.Add(localCounter.ToString()+" "+ DateTime.Now.ToString());
+                          myDataContext.strings.Add(localCounter.ToString() + " " + DateTime.Now.ToString());
                       }
                       );
 
