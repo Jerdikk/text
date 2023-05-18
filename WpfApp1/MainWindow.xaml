@@ -36,5 +36,10 @@
             <Button x:Name="testNet" VerticalAlignment="Bottom" HorizontalAlignment="Left" Content="Test on MNIST dataset" Click="testNet_Click"/>
         </DockPanel>
         <ListBox x:Name="lbTest" Grid.Column="1" Grid.Row="1" />
+        <StackPanel Grid.Row="2" Grid.Column="1">
+            <ProgressBar Name="progr1"  Height="15" Margin="5"/>
+            <ProgressBar Name="progr2"  Height="15" Margin="5"/>
+        </StackPanel>
+
     </Grid>
 </Window>

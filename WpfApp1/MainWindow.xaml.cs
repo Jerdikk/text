@@ -144,6 +144,9 @@ namespace WpfApp1
         public MyDataContext myDataContext = new MyDataContext();
         public TrainSet trainSet;
         public string globalFile;
+        private DispatcherTimer dispatcherTimer;
+        private double index001;
+        private double counter001;
 
         public MainWindow()
         {
@@ -157,7 +160,17 @@ namespace WpfApp1
 
             lbTest.SetBinding(ListBox.ItemsSourceProperty, binding);
 
+            dispatcherTimer = new System.Windows.Threading.DispatcherTimer(DispatcherPriority.Render);
+            dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
+            dispatcherTimer.Interval = TimeSpan.FromMilliseconds(1000);
+            dispatcherTimer.Start();
             // myDict = new MyDict();
+        }
+
+        private void dispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            progr1.Value = GlobalData.Instance.progress01;
+            progr2.Value = GlobalData.Instance.progress02;
         }
 
         private string ChangeUTF8Space(string targetStr)
@@ -219,8 +232,12 @@ namespace WpfApp1
               myDataContext.strings.Add("start loading sentlist!" + DateTime.Now.ToString());
           }
           );
+            index001 = 0;
+            counter001 = allText.Length;
             foreach (string line in allText)
             {
+                GlobalData.Instance.progress02 = (double)index001 / (double)counter001 * 100.0;
+                index001++;
                 tempStr = "";
                 tempLine += line;
                 tokens = tempLine.Split(chars);
@@ -248,8 +265,13 @@ namespace WpfApp1
               myDataContext.strings.Add("start parsing sents!" + DateTime.Now.ToString());
           }
           );
+            index001 = 0;
+            counter001 = sentList.Count;
             foreach (string sentense in sentList)
             {
+                GlobalData.Instance.progress02 = (double)index001 / (double)counter001 * 100.0;
+                index001++;
+
                 SentenceIDs sentenceIDs = new SentenceIDs();
                 sentenceIDs.ids = new List<int>();
                 
@@ -325,16 +347,7 @@ namespace WpfApp1
                             countToken.Add(-1);
                             listIDToken.Add(-1);
                             countSentToken.Add(-1);
-                        }
-                        /*
-                        int t = tokenList.FindIndex(x => x == token);
-                        if (t == -1)
-                        {
-                            tokenList.Add(token.Trim());
-                            countToken.Add(1);
-                        }
-                        else
-                            countToken[t] += 1;*/
+                        }                       
                     }
 
                 }
@@ -451,9 +464,14 @@ namespace WpfApp1
             // int currentListRangeIndex = 0;
             // int currentLevel2ListRangeIndex = 0;
 
+            index001 = 0;
+            counter001 = allText.Length;
+
             foreach (string line1 in allText)
             {
-                if (localCounter % 10000 == 0)
+                GlobalData.Instance.progress02 = (double)index001 / (double)counter001 * 100.0;
+                index001++;
+                /*if (localCounter % 10000 == 0)
                 {
                     this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                       (ThreadStart)delegate ()
@@ -462,7 +480,7 @@ namespace WpfApp1
                       }
                       );
 
-                }
+                }*/
 
                 tokens = line1.Split(',');
 
@@ -827,9 +845,13 @@ namespace WpfApp1
             {
                 //Open the File
                 StreamWriter sw = new StreamWriter("allword.txt", true, Encoding.UTF8);
+                double index002 = 0;
+                double counter002 = allWordDict.dictWords.Count;
 
                 foreach (DictWord dictWord in allWordDict.dictWords)
-                {
+                {                    
+                    GlobalData.Instance.progress01 = (double)index002 / (double)counter002 * 100.0;
+                    index002++;
                     string temp = dictWord.word + ";" + dictWord.id + ";" + (dictWord.isMainWord ? "1" : "0") + ";" + dictWord.type;
                     sw.WriteLine(temp);
                 }
@@ -853,9 +875,14 @@ namespace WpfApp1
             {
                 //Open the File
                 StreamWriter sw = new StreamWriter("mainword.txt", true, Encoding.UTF8);
+                double index002 = 0;
+                double counter002 = mainDictionary.mainWords.Count;
 
                 foreach (DictWord dictWord in mainDictionary.mainWords)
                 {
+                    GlobalData.Instance.progress01 = (double)index002 / (double)counter002 * 100.0;
+                    index002++;
+
                     string temp = dictWord.word + ";" + dictWord.id + ";" + (dictWord.isMainWord ? "1" : "0") + ";" + dictWord.type;
                     sw.WriteLine(temp);
                 }
@@ -1233,8 +1260,14 @@ namespace WpfApp1
             //allText = File.ReadAllLines(openFileDialog.FileName, Encoding.GetEncoding(1251));
             allText = File.ReadAllLines(globalFile, Encoding.GetEncoding("utf-8"));
             int excepCount = 0;
+            double index002 = 0;
+            double counter002 = allText.Length;
+
             foreach (string line in allText)
             {
+                GlobalData.Instance.progress01 = (double)index002 / (double)counter002 * 100.0;
+                index002++;
+
                 tempStr = "";
 
                 tokens = line.Split(chars);
@@ -1278,9 +1311,13 @@ namespace WpfApp1
                 }
 
             }
-
+            index001 = 0;
+            counter001 = dictWordsList.Count;
             foreach (DictWord dictWord1 in dictWordsList)
             {
+                GlobalData.Instance.progress02 = (double)index001 / (double)counter001 * 100.0;
+                index001++;
+
                 string temp = dictWord1.word.Substring(0, 1);
                 char[] tt = temp.ToCharArray();
                 int b = (int)tt[0];
@@ -1412,8 +1449,13 @@ namespace WpfApp1
             int cc = 0;
             allText = File.ReadAllLines(globalFile, Encoding.GetEncoding("utf-8"));
             int excepCount = 0;
+            index001 = 0;
+            counter001 = allText.Length;
             foreach (string line in allText)
             {
+                GlobalData.Instance.progress02 = (double)index001 / (double)counter001 * 100.0;
+                index001++;
+
                 tempStr = "";
 
                 tokens = line.Split(chars);
@@ -1456,8 +1498,14 @@ namespace WpfApp1
             int len = 0;
             WordRange wordRange = null;
             WordRange wordRange1 = null;
+            index001 = 0;
+            counter001 = allWordDict.dictWords.Count;
             foreach (DictWord dictWord in allWordDict.dictWords)
             {
+                GlobalData.Instance.progress02 = (double)index001 / (double)counter001 * 100.0;
+                index001++;
+
+
                 tempStr = dictWord.word.Substring(0, 1);
                 len = dictWord.word.Length;
                 if (tempStr != currentStr)
